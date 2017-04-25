@@ -14,29 +14,31 @@ class SettingsWidget(qw.QWidget):
         self.setWindowTitle("Snake")
 
         self.direction = 1
+        self.default_height = 200
+        self.default_width = 200
 
         layout = qw.QFormLayout()
 
-        player_name_text_field = qw.QLineEdit()
-        player_name_text_field.setToolTip("Your player's name.")
-        layout.addRow(qw.QLabel("Player name:"), player_name_text_field)
+        self.player_name_text_field = qw.QLineEdit()
+        self.player_name_text_field.setToolTip("Your player's name.")
+        layout.addRow(qw.QLabel("Player name:"), self.player_name_text_field)
 
         board_size_box = qw.QHBoxLayout()
-        width_text_field = qw.QLineEdit()
-        width_text_field.setToolTip("Width of the playing field.")
-        width_text_field.setValidator(qg.QIntValidator())
-        height_text_field = qw.QLineEdit()
-        height_text_field.setToolTip("Height of the playing field.")
-        height_text_field.setValidator(qg.QIntValidator())
-        board_size_box.addWidget(width_text_field)
+        self.width_text_field = qw.QLineEdit()
+        self.width_text_field.setToolTip("Width of the playing field.")
+        self.width_text_field.setValidator(qg.QIntValidator())
+        self.height_text_field = qw.QLineEdit()
+        self.height_text_field.setToolTip("Height of the playing field.")
+        self.height_text_field.setValidator(qg.QIntValidator())
+        board_size_box.addWidget(self.width_text_field)
         board_size_box.addWidget(qw.QLabel("x"))
-        board_size_box.addWidget(height_text_field)
+        board_size_box.addWidget(self.height_text_field)
         layout.addRow(qw.QLabel("Board size:"), board_size_box)
 
-        zoom_factor_text_field = qw.QLineEdit()
-        zoom_factor_text_field.setToolTip("Zoom factor.")
-        zoom_factor_text_field.setValidator(qg.QIntValidator())
-        layout.addRow(qw.QLabel("Zoom factor:"), zoom_factor_text_field)
+        self.zoom_factor_text_field = qw.QLineEdit()
+        self.zoom_factor_text_field.setToolTip("Zoom factor.")
+        self.zoom_factor_text_field.setValidator(qg.QIntValidator())
+        layout.addRow(qw.QLabel("Zoom factor:"), self.zoom_factor_text_field)
 
         button_box = qw.QHBoxLayout()
         start_button = qw.QPushButton("Start")
@@ -49,8 +51,14 @@ class SettingsWidget(qw.QWidget):
         self.setLayout(layout)
 
     def startGame(self):
-
-        game_view = snakelabel.SnakeLabel(100, 100)
+        #exception handling not necessary because of QIntValidator
+        width = int (self.width_text_field.text())
+        height = int (self.height_text_field.text())
+        #if height or width are invalid use default values
+        if width <= 0 or height <=0:
+           width = self.default_width
+           height = self.default_height
+        game_view = snakelabel.SnakeLabel(width,height)
         game_view.setWindowTitle("Snake")
         game_view.exec_()
 
