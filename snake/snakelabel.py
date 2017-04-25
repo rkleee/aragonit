@@ -7,9 +7,10 @@ from PyQt5 import QtWidgets as qw
 
 class SnakeLabel(qw.QLabel):
 
-    def __init__(self, width, height):
+    def __init__(self,base_width, base_height,width, height):
         super(SnakeLabel, self).__init__()
-
+        #move label to (400,100) and set width and height
+        self.setGeometry(base_width,base_height,width,height)
         self.setWindowTitle("Snake")
         self.setScaledContents(True)
 
