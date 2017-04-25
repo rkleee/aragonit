@@ -49,6 +49,7 @@ class SettingsWidget(qw.QWidget):
         self.setLayout(layout)
 
     def startGame(self):
+
         game_view = snakelabel.SnakeLabel(100, 100)
         game_view.setWindowTitle("Snake")
         game_view.exec_()
