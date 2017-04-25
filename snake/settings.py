@@ -1,15 +1,20 @@
 import sys
 
+from PyQt5 import QtCore as qc
 from PyQt5 import QtGui as qg
 from PyQt5 import QtWidgets as qw
 
+import snakelabel
 
-class SettingsView(qw.QWidget):
+
+class SettingsWidget(qw.QWidget):
 
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Snake")
 
-        self.setWindowTitle("Snake settings")
+        self.direction = 1
+
         layout = qw.QFormLayout()
 
         player_name_text_field = qw.QLineEdit()
@@ -35,16 +40,22 @@ class SettingsView(qw.QWidget):
 
         button_box = qw.QHBoxLayout()
         start_button = qw.QPushButton("Start")
-        highscore_button = qw.QPushButton("Highscore")
+        start_button.clicked.connect(self.startGame)
+        stop_button = qw.QPushButton("Stop")
         button_box.addWidget(start_button)
-        button_box.addWidget(highscore_button)
+        button_box.addWidget(stop_button)
         layout.addRow(button_box)
 
         self.setLayout(layout)
 
+    def startGame(self):
+        game_view = snakelabel.SnakeLabel(100, 100)
+        game_view.setWindowTitle("Snake")
+        game_view.exec_()
+
 
 if __name__ == "__main__":
-    settings_app = qw.QApplication(sys.argv)
-    settings_view = SettingsView()
+    snake_app = qw.QApplication(sys.argv)
+    settings_view = SettingsWidget()
     settings_view.show()
-    sys.exit(settings_app.exec_())
+    sys.exit(snake_app.exec_())
