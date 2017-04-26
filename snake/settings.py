@@ -7,28 +7,34 @@ from PyQt5 import QtWidgets as qw
 import snakelabel
 
 
-def startGame(self):
+def startGame():
     # use default values for invalid inputs
+    name = ""
+    height = 20
+    width = 20
+    zoom_factor = 10
     try:
-        name = player_name_text_field.text()
+        name = player_name_text_field.text().strip()
     except ValueError:
-        name = default_name
+        pass
 
     try:
         width = int(width_text_field.text())
     except ValueError:
-        width = default_width
+        pass
 
     try:
         height = int(height_text_field.text())
     except ValueError:
-        height = default_height
+        pass
 
     try:
         zoom_factor = int(zoom_factor_text_field.text())
     except ValueError:
-        zoom_factor = default_zoom_factor
+        pass
 
+    if name == "":
+        name = "player"
     if width < 10:
         width = default_width
     if height < 10:
@@ -42,13 +48,14 @@ def startGame(self):
     game_view.setWindowModality(qc.Qt.ApplicationModal)
     game_view.setAutoFillBackground(True)
 
-
     # resizes the dialog according to the zoom factor
     game_view.resize(width * zoom_factor, height * zoom_factor)
 
     layout = qw.QGridLayout()
     snake_label = snakelabel.SnakeLabel(width, height, name)
-    message_label = qw.QLabel("Play snake!")
+
+    text = "Welcome " + name + "!"
+    message_label = qw.QLabel(text)
     layout.addWidget(snake_label, 1, 1, 1, 1)
     layout.addWidget(message_label, 2, 1, 1, 1)
 
@@ -64,12 +71,6 @@ snake_app = qw.QApplication(sys.argv)
 # creates widget to choose the snake app's settings
 settings_view = qw.QWidget()
 settings_view.setWindowTitle("Snake settings")
-
-# sets some default values
-default_name = "player"
-default_height = 20
-default_width = 20
-default_zoom_factor = 10
 
 layout = qw.QFormLayout()
 
@@ -98,7 +99,7 @@ button_box = qw.QHBoxLayout()
 start_button = qw.QPushButton("Start")
 start_button.clicked.connect(startGame)
 stop_button = qw.QPushButton("Stop")
-# stop_button.clicked.connect(self.stopGame)
+# stop_button.clicked.connect(stopGame)
 button_box.addWidget(start_button)
 button_box.addWidget(stop_button)
 layout.addRow(button_box)

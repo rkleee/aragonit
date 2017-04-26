@@ -11,7 +11,7 @@ class SnakeLabel(qw.QLabel):
     def __init__(self, width, height, player_name):
         super(SnakeLabel, self).__init__()
 
-        # self.setGeometry(width, height)
+        self.resize(width, height)
         self.setWindowTitle("Snake")
         self.setScaledContents(True)
 
@@ -19,6 +19,7 @@ class SnakeLabel(qw.QLabel):
         self.height = height
         self.highscore = 0
         self.fruit_coordinates = [0, 0]
+        self.speed = 100
 
         self.snake_color = 0x00000000  # black
         self.background_color = 0xffffffff  # white
@@ -41,7 +42,7 @@ class SnakeLabel(qw.QLabel):
 
         self.show()
 
-        self.startGame()
+        self.startGame(self.speed)
 
     def moveSnake(self):
         # gets end of snake
@@ -122,10 +123,10 @@ class SnakeLabel(qw.QLabel):
         elif event.key() == qc.Qt.Key_Left and self.direction != 1:
             self.direction = 3
 
-    def startGame(self):
-        self.timer.setInterval(1000)
+    def startGame(self, speed):
+        self.timer.setInterval(speed)
         self.timer.timeout.connect(self.moveSnake)
-        self.timer.start(1000)
+        self.timer.start(speed)
 
     def stopGame(self):
         self.timer.stop()
