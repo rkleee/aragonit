@@ -7,15 +7,16 @@ from PyQt5 import QtWidgets as qw
 
 class SnakeLabel(qw.QLabel):
 
-    def __init__(self,base_width, base_height,width, height):
+    def __init__(self, base_width, base_height, width, height):
         super(SnakeLabel, self).__init__()
-        #move label to (400,100) and set width and height
-        self.setGeometry(base_width,base_height,width,height)
+        # move label to (400,100) and set width and height
+        self.setGeometry(base_width, base_height, width, height)
         self.setWindowTitle("Snake")
         self.setScaledContents(True)
 
         self.width = width
         self.height = height
+        self.highscore = 0
 
         self.snake_color = 0x00000000  # black
         self.background_color = 0xffffffff  # white
@@ -26,8 +27,9 @@ class SnakeLabel(qw.QLabel):
         self.playing_field = qg.QImage(width, height, qg.QImage.Format_RGB32)
         self.playing_field.fill(self.background_color)
 
-        # first position of list is last position of snake
-        self.snake_position = [[0, 0], [1, 0], [2, 0], [3, 0]]
+        # creates the snake
+        # first tuple in the list represents the first snake element
+        self.snake_position = [[4, 0], [3, 0], [2, 0], [1, 0], [0, 0]]
         for pos in self.snake_position:
             self.playing_field.setPixel(pos[0], pos[1], self.snake_color)
         self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
@@ -37,16 +39,17 @@ class SnakeLabel(qw.QLabel):
         self.startGame()
 
     def moveSnake(self):
-        # get end of snake
-        x_value = self.snake_position[0][0]
-        y_value = self.snake_position[0][1]
-        # delete end of snake
-        self.playing_field.setPixel(x_value, y_value, self.background_color)
-        self.snake_position.pop(0)
-
-        # get beginning of snake
+        # gets end of snake
         x_value = self.snake_position[-1][0]
         y_value = self.snake_position[-1][1]
+
+        # deletes end of snake
+        self.playing_field.setPixel(x_value, y_value, self.background_color)
+        del(self.snake_position[-1])
+
+        # get beginning of snake
+        x_value = self.snake_position[0][0]
+        y_value = self.snake_position[0][1]
 
         # calculate new beginning of snake
         if (self.direction == 0):
@@ -59,17 +62,27 @@ class SnakeLabel(qw.QLabel):
             x_value = x_value - 1
 
         # only draw snake if beginning of snake is valid
-        if not self.crossedBorder(x_value, y_value):
+        crossedBorder = self.crossedBorder(x_value, y_value)
+        pushedSnake = self.pushedSnake(x_value, y_value)
+        if not crossedBorder and not pushedSnake:
             self.playing_field.setPixel(x_value, y_value, self.snake_color)
-            self.snake_position.append([x_value, y_value])
+            self.snake_position.insert(0, [x_value, y_value])
             self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
         else:
-            print("You've lost!")
             self.stopGame()
 
     def crossedBorder(self, x, y):
-        """Returns true if coordinates are out of range."""
+        """Returns true if coordinates are outside the playing field borders."""
         return x < 0 or x >= self.width or y < 0 or y >= self.height
+
+    def pushedSnake(self, x, y):
+        """Returns true if coordinates are part of the snake."""
+        pushedSnake = False
+        for pos in self.snake_position:
+            if pos[0] == x and pos[1] == y:
+                pushedSnake = True
+                break
+        return pushedSnake
 
     def keyPressEvent(self, event):
         """

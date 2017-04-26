@@ -10,15 +10,14 @@ import snakelabel
 class SettingsWidget(qw.QWidget):
 
     def __init__(self):
-        super().__init__()
+        super(SettingsWidget, self).__init__()
 
-        self.direction = 1
         self.default_height = 200
         self.default_width = 200
-        self.offset=70
+        self.offset = 70
 
-        #move label (100,100) and set width and height
-        self.setGeometry(self.offset,self.offset,self.offset,self.offset)
+        # move label (100,100) and set width and height
+        self.setGeometry(self.offset, self.offset, self.offset, self.offset)
         self.setWindowTitle("Snake")
         layout = qw.QFormLayout()
 
@@ -47,6 +46,7 @@ class SettingsWidget(qw.QWidget):
         start_button = qw.QPushButton("Start")
         start_button.clicked.connect(self.startGame)
         stop_button = qw.QPushButton("Stop")
+        # stop_button.clicked.connect(self.stopGame)
         button_box.addWidget(start_button)
         button_box.addWidget(stop_button)
         layout.addRow(button_box)
@@ -55,18 +55,19 @@ class SettingsWidget(qw.QWidget):
 
     def startGame(self):
         try:
-            width = int (self.width_text_field.text())
-            height = int (self.height_text_field.text())
-            #if height or width are invalid use default values
-            if width <= 0 or height <=0:
-               width = self.default_width
-               height = self.default_height
+            width = int(self.width_text_field.text())
+            height = int(self.height_text_field.text())
+            # if height or width are invalid use default values
+            if width <= 0 or height <= 0:
+                width = self.default_width
+                height = self.default_height
         except ValueError:
             width = self.default_width
             height = self.default_height
         base_height = self.offset
-        base_width = 2*self.offset + self.frameGeometry().width()
-        game_view = snakelabel.SnakeLabel(base_width, base_height,width, height)
+        base_width = 2 * self.offset + self.frameGeometry().width()
+        game_view = snakelabel.SnakeLabel(
+            base_width, base_height, width, height)
         game_view.setWindowTitle("Snake")
         game_view.exec_()
 
