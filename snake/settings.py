@@ -7,12 +7,44 @@ from PyQt5 import QtWidgets as qw
 import snakelabel
 
 
+class GameDialog(qw.QDialog):
+
+    def __init__(self, width, height, zoom_factor, speed, name):
+        super(GameDialog, self).__init__()
+
+        self.setWindowTitle("Snake game")
+        self.setWindowModality(qc.Qt.ApplicationModal)
+        self.setAutoFillBackground(True)
+
+        self.name = name
+
+        layout = qw.QGridLayout()
+        snake_label = snakelabel.SnakeLabel(width, height, speed)
+
+        text = "Welcome " + name + "!"
+        self.message_label = qw.QLabel(text)
+        layout.addWidget(snake_label, 1, 1, 1, 1)
+        layout.addWidget(self.message_label, 2, 1, 1, 1)
+
+        self.setLayout(layout)
+
+        # resizes the dialog according to the zoom factor
+        self.setGeometry(0, 0, width * zoom_factor, height * zoom_factor)
+
+        self.keyPressEvent = snake_label.keyPressEvent
+
+    def printScore(self, score):
+        text = self.name + ", you have reached " + str(score) + " points."
+        self.message_label.setText(text)
+
+
 def startGame():
     # use default values for invalid inputs
     name = ""
     height = 20
     width = 20
     zoom_factor = 10
+    speed = speed_slider.value()
     try:
         name = player_name_text_field.text().strip()
     except ValueError:
@@ -42,27 +74,7 @@ def startGame():
     if zoom_factor < 1:
         zoom_factor = default_zoom_factor
 
-    # creates dialog to play snake
-    game_view = qw.QDialog()
-    game_view.setWindowTitle("Snake game")
-    game_view.setWindowModality(qc.Qt.ApplicationModal)
-    game_view.setAutoFillBackground(True)
-
-    # resizes the dialog according to the zoom factor
-    game_view.resize(width * zoom_factor, height * zoom_factor)
-
-    layout = qw.QGridLayout()
-    snake_label = snakelabel.SnakeLabel(width, height, name)
-
-    text = "Welcome " + name + "!"
-    message_label = qw.QLabel(text)
-    layout.addWidget(snake_label, 1, 1, 1, 1)
-    layout.addWidget(message_label, 2, 1, 1, 1)
-
-    game_view.setLayout(layout)
-
-    game_view.keyPressEvent = snake_label.keyPressEvent
-
+    game_view = GameDialog(width, height, zoom_factor, speed, name)
     game_view.exec_()
 
 
@@ -94,6 +106,12 @@ zoom_factor_text_field = qw.QLineEdit()
 zoom_factor_text_field.setToolTip("Zoom factor.")
 zoom_factor_text_field.setValidator(qg.QIntValidator())
 layout.addRow(qw.QLabel("Zoom factor:"), zoom_factor_text_field)
+
+speed_slider = qw.QSlider(qc.Qt.Horizontal)
+speed_slider.setMinimum(10)
+speed_slider.setMaximum(1000)
+speed_slider.setValue(100)
+layout.addRow(qw.QLabel("Speed:"), speed_slider)
 
 button_box = qw.QHBoxLayout()
 start_button = qw.QPushButton("Start")
