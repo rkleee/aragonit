@@ -1,5 +1,6 @@
 import sys
 
+import numpy
 from PyQt5 import QtCore as qc
 from PyQt5 import QtGui as qg
 from PyQt5 import QtWidgets as qw
@@ -7,19 +8,21 @@ from PyQt5 import QtWidgets as qw
 
 class SnakeLabel(qw.QLabel):
 
-    def __init__(self, base_width, base_height, width, height):
+    def __init__(self, width, height, player_name):
         super(SnakeLabel, self).__init__()
-        # move label to (400,100) and set width and height
-        self.setGeometry(base_width, base_height, width, height)
+
+        # self.setGeometry(width, height)
         self.setWindowTitle("Snake")
         self.setScaledContents(True)
 
         self.width = width
         self.height = height
         self.highscore = 0
+        self.fruit_coordinates = [0, 0]
 
         self.snake_color = 0x00000000  # black
         self.background_color = 0xffffffff  # white
+        self.fruit_color = 0x00ffffff  # blue
         self.direction = 1
 
         self.timer = qc.QTimer()
@@ -33,6 +36,8 @@ class SnakeLabel(qw.QLabel):
         for pos in self.snake_position:
             self.playing_field.setPixel(pos[0], pos[1], self.snake_color)
         self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
+
+        self.drawFruit()
 
         self.show()
 
@@ -84,6 +89,18 @@ class SnakeLabel(qw.QLabel):
                 break
         return pushedSnake
 
+    def drawFruit(self):
+        valid_fruit = False
+        while not valid_fruit:
+            fruit_x_value = numpy.random.randint(0, self.width)
+            fruit_y_value = numpy.random.randint(0, self.height)
+            if not self.pushedSnake(fruit_x_value, fruit_y_value):
+                valid_fruit = True
+        self.fruit_coordinates = [fruit_x_value, fruit_y_value]
+        self.playing_field.setPixel(
+            fruit_x_value, fruit_y_value, self.fruit_color)
+        self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
+
     def keyPressEvent(self, event):
         """
         Translates the pressed key into an integer and
@@ -106,9 +123,9 @@ class SnakeLabel(qw.QLabel):
             self.direction = 3
 
     def startGame(self):
-        self.timer.setInterval(100)
+        self.timer.setInterval(1000)
         self.timer.timeout.connect(self.moveSnake)
-        self.timer.start(100)
+        self.timer.start(1000)
 
     def stopGame(self):
         self.timer.stop()
