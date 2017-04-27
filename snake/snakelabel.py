@@ -17,13 +17,23 @@ class SnakeLabel(qw.QLabel):
 
         self.width = width
         self.height = height
+
+        # integer between 1 and 20 indicating the actual speed
+        # 1 = very slow
+        # 20 = very fast
         self.speed = speed
+        # indicates how many points are necessary to increase the speed
+        self.points_to_speed_increase = 3
+        # current score since the last speed increase
+        self.achieved_points_since_speed_increase = 0
+        # overall score
         self.score = 0
+
         self.fruit_coordinate = [0, 0]
 
         self.snake_color = 0x00000000
         self.background_color = 0xffffffff
-        self.fruit_color = 0xffffff00
+        self.fruit_color = 0x00FF0000
         self.direction = 1
 
         self.timer = qc.QTimer()
@@ -78,7 +88,13 @@ class SnakeLabel(qw.QLabel):
                 x_value, y_value, self.background_color)
             del(self.snake_position[-1])
         else:
-            self.score = self.score + 1
+            self.achieved_points_since_speed_increase += 1
+            self.score += 1
+
+            # increase speed when necessary
+            if self.achieved_points_since_speed_increase >= self.points_to_speed_increase:
+                self.increaseSpeed()
+
             self.drawFruit()
 
     def crossedBorder(self, x, y):
@@ -131,9 +147,19 @@ class SnakeLabel(qw.QLabel):
         elif event.key() == qc.Qt.Key_Left and self.direction != 1:
             self.direction = 3
 
+    def setSpeed(self):
+        calcMilliseconds = 1000 / self.speed
+        self.timer.setInterval(calcMilliseconds)
+
+    def increaseSpeed(self):
+        if self.speed < 20:
+            self.speed += 1
+            self.setSpeed()
+
     def startGame(self, speed):
         self.timer.timeout.connect(self.moveSnake)
-        self.timer.start(speed)
+        self.setSpeed()
+        self.timer.start()
 
     def stopGame(self):
         self.timer.stop()
