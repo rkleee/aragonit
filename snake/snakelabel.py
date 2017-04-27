@@ -8,12 +8,11 @@ from PyQt5 import QtWidgets as qw
 
 class SnakeLabel(qw.QLabel):
 
-    def __init__(self, width, height, speed):
+    def __init__(self, width, height):
         super(SnakeLabel, self).__init__()
 
         self.setWindowTitle("Snake")
         self.setScaledContents(True)
-        self.setGeometry(0, 0, height, width)
 
         self.width = width
         self.height = height
@@ -21,7 +20,7 @@ class SnakeLabel(qw.QLabel):
         # integer between 1 and 20 indicating the actual speed
         # 1 = very slow
         # 20 = very fast
-        self.speed = speed
+        self.speed = 5
         # indicates how many points are necessary to increase the speed
         self.points_to_speed_increase = 3
         # current score since the last speed increase
@@ -29,11 +28,14 @@ class SnakeLabel(qw.QLabel):
         # overall score
         self.score = 0
 
-        self.fruit_coordinate = [0, 0]
-
+        # sets colours for different items
         self.snake_color = 0x00000000
         self.background_color = 0xffffffff
         self.fruit_color = 0x00FF0000
+
+        self.fruit_coordinate = [0, 0]
+
+        # initially, snake moves to the right
         self.direction = 1
 
         self.timer = qc.QTimer()
@@ -41,9 +43,16 @@ class SnakeLabel(qw.QLabel):
         self.playing_field = qg.QImage(width, height, qg.QImage.Format_RGB32)
         self.playing_field.fill(self.background_color)
 
-        # creates the snake
-        # first tuple in the list represents the first snake element
-        self.snake_position = [[3, 0], [2, 0], [1, 0], [0, 0]]
+        # creates the snake in the lower left corner
+        #
+        # first tuple in the list represents the first
+        # snake element concerning the moving direction
+        self.snake_position = [
+            [3, self.height - 1],
+            [2, self.height - 1],
+            [1, self.height - 1],
+            [0, self.height - 1]
+        ]
         for pos in self.snake_position:
             self.playing_field.setPixel(pos[0], pos[1], self.snake_color)
         self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
@@ -52,7 +61,7 @@ class SnakeLabel(qw.QLabel):
 
         self.show()
 
-        self.startGame(self.speed)
+        self.startGame()
 
     def moveSnake(self):
         # get beginning of snake
@@ -147,20 +156,20 @@ class SnakeLabel(qw.QLabel):
         elif event.key() == qc.Qt.Key_Left and self.direction != 1:
             self.direction = 3
 
-    def setSpeed(self):
+    def setSpeed(self, speed):
+        self.speed = speed
         calcMilliseconds = 1000 / self.speed
         self.timer.setInterval(calcMilliseconds)
 
     def increaseSpeed(self):
         if self.speed < 20:
             self.speed += 1
-            self.setSpeed()
+            self.setSpeed(self.speed)
 
-    def startGame(self, speed):
+    def startGame(self):
         self.timer.timeout.connect(self.moveSnake)
-        self.setSpeed()
         self.timer.start()
 
     def stopGame(self):
         self.timer.stop()
-        self.parent().printScore(self.score)
+        self.parent().showResult(self.score)
