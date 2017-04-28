@@ -18,13 +18,10 @@ class GameDialog(qw.QDialog):
 
         self.name = name
 
-        layout = qw.QGridLayout()
+        layout = qw.QVBoxLayout()
         snake_label = snakelabel.SnakeLabel(width, height)
         snake_label.setSpeed(speed)
-
-        layout.addWidget(snake_label, 1, 1, 1, 1)
-        # layout.addWidget(self.message_label, 2, 1, 1, 1)
-
+        layout.addWidget(snake_label)
         self.setLayout(layout)
 
         # resizes the dialog according to the zoom factor
