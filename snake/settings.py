@@ -9,25 +9,26 @@ import snakelabel
 
 class GameDialog(qw.QDialog):
 
-    def __init__(self, width, height, zoom_factor, speed, name):
+    def __init__(self, width, height, zoom_factor, speed, player_name):
         super(GameDialog, self).__init__()
-
         self.setWindowTitle("Snake game")
         self.setWindowModality(qc.Qt.ApplicationModal)
         self.setAutoFillBackground(True)
 
-        self.name = name
+        self.player_name = player_name
 
         layout = qw.QVBoxLayout()
-        snake_label = snakelabel.SnakeLabel(width, height)
-        snake_label.setSpeed(speed)
-        layout.addWidget(snake_label)
+        self.snake_label = snakelabel.SnakeLabel(width, height)
+        self.snake_label.setSpeed(speed)
+        layout.addWidget(self.snake_label)
         self.setLayout(layout)
 
         # resizes the dialog according to the zoom factor
         self.setGeometry(0, 0, width * zoom_factor, height * zoom_factor)
 
-        self.keyPressEvent = snake_label.keyPressEvent
+        self.keyPressEvent = self.snake_label.keyPressEvent
+
+        self.startGame()
 
     def showResult(self, score):
         # creates a QDialog to show the results
@@ -38,26 +39,31 @@ class GameDialog(qw.QDialog):
 
         layout = qw.QVBoxLayout()
 
-        # adds a picture according to the score
+        # chooses a picture according to the overall score
         picture_label = qw.QLabel()
-        picture_label.resize(300, 300)
         if score < 5:
             picture = qg.QPixmap("snake_sad.jpg")
         elif score < 10:
             picture = qg.QPixmap("snake_normal.jpg")
         else:
             picture = qg.QPixmap("snake_happy.jpg")
+        # sets the dialog's size and scales the picture accordingly
+        picture_label.resize(300, 300)
         scaled_picture = picture.scaled(
             picture_label.size(), qc.Qt.KeepAspectRatio)
-        picture_label.setPixmap(scaled_picture)
+        # draws the picture
         picture_label.setAlignment(qc.Qt.AlignCenter)
+        picture_label.setPixmap(scaled_picture)
+
         layout.addWidget(picture_label)
 
-        # adds a short text
+        # adds a short text according to the overall score
         if (score == 1):
-            text = self.name + ", you have reached " + str(score) + " point."
+            text = self.player_name + \
+                ", you have reached " + str(score) + " point."
         else:
-            text = self.name + ", you have reached " + str(score) + " points."
+            text = self.player_name + ", you have reached " + \
+                str(score) + " points."
         message_label = qw.QLabel(text)
         message_label.setAlignment(qc.Qt.AlignCenter)
         layout.addWidget(message_label)
@@ -65,6 +71,12 @@ class GameDialog(qw.QDialog):
         result_dialog.setLayout(layout)
 
         result_dialog.exec_()
+
+    def startGame(self):
+        self.snake_label.startGame()
+
+    def pauseGame(self):
+        self.snake_label.pauseGame()
 
 
 class SettingsWidget(qw.QWidget):
@@ -103,16 +115,19 @@ class SettingsWidget(qw.QWidget):
         self.speed_slider.setMinimum(1)
         self.speed_slider.setMaximum(20)
         self.speed_slider.setValue(5)
+        self.speed_slider.setToolTip("Set the snake's initial speed.")
         layout.addRow(qw.QLabel("Speed:"), self.speed_slider)
 
-        button_box = qw.QHBoxLayout()
+        box = qw.QVBoxLayout()
+        help_label = qw.QLabel(
+            "Use the arrow keys to control the snake.\nThe P key pauses the game.")
+        help_label.setAlignment(qc.Qt.AlignCenter)
         start_button = qw.QPushButton("Start")
         start_button.clicked.connect(self.startGame)
-        stop_button = qw.QPushButton("Stop")
-        # stop_button.clicked.connect(stopGame)00
-        button_box.addWidget(start_button)
-        button_box.addWidget(stop_button)
-        layout.addRow(button_box)
+        start_button.setToolTip("Starts the game.")
+        box.addWidget(help_label)
+        box.addWidget(start_button)
+        layout.addRow(box)
 
         self.player_name = self.player_name_text_field.text().strip()
 
@@ -156,8 +171,8 @@ class SettingsWidget(qw.QWidget):
             zoom_factor = default_zoom_factor
 
         # open game window
-        game_view = GameDialog(width, height, zoom_factor, speed, name)
-        game_view.exec_()
+        self.game_view = GameDialog(width, height, zoom_factor, speed, name)
+        self.game_view.exec_()
 
 
 if __name__ == "__main__":

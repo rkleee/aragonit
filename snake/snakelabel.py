@@ -10,17 +10,30 @@ class SnakeLabel(qw.QLabel):
 
     def __init__(self, width, height):
         super(SnakeLabel, self).__init__()
-
         self.setWindowTitle("Snake")
-        self.setScaledContents(True)
 
+        # size of the playing field in pixel
+        # one pixel = one block for the snake
         self.width = width
         self.height = height
+        # automatically scales the playing field according
+        # to the size of the parent container
+        self.setScaledContents(True)
 
+        # creates timer to keep the snake moving
+        self.timer = qc.QTimer()
+        self.timer.timeout.connect(self.moveSnake)
+
+        # indicates if the game is running or not
+        self.isRunning = False
+
+        # sets default speed value
+        #
         # integer between 1 and 20 indicating the actual speed
         # 1 = very slow
         # 20 = very fast
-        self.speed = 5
+        self.setSpeed(5)
+
         # indicates how many points are necessary to increase the speed
         self.points_to_speed_increase = 3
         # current score since the last speed increase
@@ -33,13 +46,7 @@ class SnakeLabel(qw.QLabel):
         self.background_color = 0xffffffff
         self.fruit_color = 0x00FF0000
 
-        self.fruit_coordinate = [0, 0]
-
-        # initially, snake moves to the right
-        self.direction = 1
-
-        self.timer = qc.QTimer()
-
+        # initializes the playing field
         self.playing_field = qg.QImage(width, height, qg.QImage.Format_RGB32)
         self.playing_field.fill(self.background_color)
 
@@ -53,22 +60,27 @@ class SnakeLabel(qw.QLabel):
             [1, self.height - 1],
             [0, self.height - 1]
         ]
+        # draws the initially created snake
         for pos in self.snake_position:
             self.playing_field.setPixel(pos[0], pos[1], self.snake_color)
         self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
+
+        # initially, snake moves to the right
+        self.direction = 1
+
+        # variable to store the fruit's location
+        self.fruit_coordinate = [0, 0]
 
         self.drawFruit()
 
         self.show()
 
-        self.startGame()
-
     def moveSnake(self):
-        # get beginning of snake
+        # gets beginning of snake
         x_value = self.snake_position[0][0]
         y_value = self.snake_position[0][1]
 
-        # calculate new beginning of snake
+        # calculates new beginning of snake
         if (self.direction == 0):
             y_value = y_value - 1
         elif (self.direction == 1):
@@ -78,7 +90,7 @@ class SnakeLabel(qw.QLabel):
         elif (self.direction == 3):
             x_value = x_value - 1
 
-        # only draw snake if beginning of snake is valid
+        # only draws the snake if its new beginning is valid
         crossedBorder = self.crossedBorder(x_value, y_value)
         pushedSnake = self.pushedSnake(x_value, y_value)
         if not crossedBorder and not pushedSnake:
@@ -124,6 +136,14 @@ class SnakeLabel(qw.QLabel):
         return self.fruit_coordinate[0] == x and self.fruit_coordinate[1] == y
 
     def drawFruit(self):
+        """
+        Chooses the position of the fruit randomly and draws it if the
+        position is valid.
+        """
+        # TODO: create better function to generate a new fruit position
+        #
+        # at the moment, the function may run endlessly if the snake is very
+        # long
         valid_fruit = False
         while not valid_fruit:
             fruit_x_value = numpy.random.randint(0, self.width)
@@ -146,7 +166,12 @@ class SnakeLabel(qw.QLabel):
         Right = 1
         Down = 2
         Left = 3
+
+        Pauses and restarts the game.
+
+        P = pauses or restarts the game
         """
+        # controls the snake
         if event.key() == qc.Qt.Key_Up and self.direction != 2:
             self.direction = 0
         elif event.key() == qc.Qt.Key_Right and self.direction != 3:
@@ -155,11 +180,25 @@ class SnakeLabel(qw.QLabel):
             self.direction = 2
         elif event.key() == qc.Qt.Key_Left and self.direction != 1:
             self.direction = 3
+        elif event.key() == qc.Qt.Key_P:
+            # pauses the game if it is actually running
+            if self.isRunning:
+                self.pauseGame()
+            else:
+                self.startGame()
+        else:
+            pass
+
+    def calcSpeed(self, speed):
+        """
+        Calculates the actual timer interval (in milliseconds) from the given
+        speed attribute.
+        """
+        return 1000 / speed
 
     def setSpeed(self, speed):
         self.speed = speed
-        calcMilliseconds = 1000 / self.speed
-        self.timer.setInterval(calcMilliseconds)
+        self.timer.setInterval(self.calcSpeed(speed))
 
     def increaseSpeed(self):
         if self.speed < 20:
@@ -167,9 +206,14 @@ class SnakeLabel(qw.QLabel):
             self.setSpeed(self.speed)
 
     def startGame(self):
-        self.timer.timeout.connect(self.moveSnake)
+        self.isRunning = True
         self.timer.start()
 
+    def pauseGame(self):
+        self.isRunning = False
+        self.timer.stop()
+
     def stopGame(self):
+        self.isRunning = False
         self.timer.stop()
         self.parent().showResult(self.score)
