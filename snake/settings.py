@@ -42,11 +42,11 @@ class GameDialog(qw.QDialog):
         # chooses a picture according to the overall score
         picture_label = qw.QLabel()
         if score < 5:
-            picture = qg.QPixmap("snake_sad.jpg")
+            picture = qg.QPixmap("img/snake_sad.jpg")
         elif score < 10:
-            picture = qg.QPixmap("snake_normal.jpg")
+            picture = qg.QPixmap("img/snake_normal.jpg")
         else:
-            picture = qg.QPixmap("snake_happy.jpg")
+            picture = qg.QPixmap("img/snake_happy.jpg")
         # sets the dialog's size and scales the picture accordingly
         picture_label.resize(300, 300)
         scaled_picture = picture.scaled(
@@ -170,7 +170,7 @@ class SettingsWidget(qw.QWidget):
         if zoom_factor < 1:
             zoom_factor = default_zoom_factor
 
-        # open game window
+        # opens game window
         self.game_view = GameDialog(width, height, zoom_factor, speed, name)
         self.game_view.exec_()
 
