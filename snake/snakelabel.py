@@ -12,6 +12,12 @@ class SnakeLabel(qw.QLabel):
         super(SnakeLabel, self).__init__()
         self.setWindowTitle("Snake")
 
+        #semaphore for moving the snake
+        # without semaphore some keyboard event combinaton might cause 
+        # the game to stop unexpectedly, because only the last stored
+        # direction is used for drawing
+        self.moveSemaphore=False
+        
         # size of the playing field in pixel
         # one pixel = one block for the snake
         self.width = width
@@ -98,6 +104,8 @@ class SnakeLabel(qw.QLabel):
                 x_value, y_value, self.snake_color)
             self.snake_position.insert(0, [x_value, y_value])
             self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
+            #remvove semaphore after drawing the snake
+            self.moveSemaphore=False
         else:
             self.stopGame()
 
@@ -172,15 +180,22 @@ class SnakeLabel(qw.QLabel):
         P = pauses or restarts the game
         """
         # controls the snake
-        if event.key() == qc.Qt.Key_Up and self.direction != 2:
-            self.direction = 0
-        elif event.key() == qc.Qt.Key_Right and self.direction != 3:
-            self.direction = 1
-        elif event.key() == qc.Qt.Key_Down and self.direction != 0:
-            self.direction = 2
-        elif event.key() == qc.Qt.Key_Left and self.direction != 1:
-            self.direction = 3
-        elif event.key() == qc.Qt.Key_P:
+        # if semaphore is set do nothing otherwise set direction and set
+        # semaphore
+        if not self.moveSemaphore:
+                if event.key() == qc.Qt.Key_Up and self.direction != 2:
+                    self.direction = 0
+                    self.moveSemaphore=True
+                elif event.key() == qc.Qt.Key_Right and self.direction != 3:
+                    self.direction = 1
+                    self.moveSemaphore=True
+                elif event.key() == qc.Qt.Key_Down and self.direction != 0:
+                    self.direction = 2
+                    self.moveSemaphore=True
+                elif event.key() == qc.Qt.Key_Left and self.direction != 1:
+                    self.direction = 3
+                    self.moveSemaphore=True
+        if event.key() == qc.Qt.Key_P:
             # pauses the game if it is actually running
             if self.isRunning:
                 self.pauseGame()
