@@ -12,12 +12,6 @@ class SnakeLabel(qw.QLabel):
         super(SnakeLabel, self).__init__()
         self.setWindowTitle("Snake")
 
-        #semaphore for moving the snake
-        # without semaphore some keyboard event combinaton might cause 
-        # the game to stop unexpectedly, because only the last stored
-        # direction is used for drawing
-        self.moveSemaphore=False
-        
         # size of the playing field in pixel
         # one pixel = one block for the snake
         self.width = width
@@ -29,6 +23,10 @@ class SnakeLabel(qw.QLabel):
         # creates timer to keep the snake moving
         self.timer = qc.QTimer()
         self.timer.timeout.connect(self.moveSnake)
+
+        # uses a semaphore to avoid multiple threads changing
+        # the direction simultanously
+        self.isChangingDirection = False
 
         # indicates if the game is running or not
         self.isRunning = False
@@ -104,12 +102,13 @@ class SnakeLabel(qw.QLabel):
                 x_value, y_value, self.snake_color)
             self.snake_position.insert(0, [x_value, y_value])
             self.setPixmap(qg.QPixmap.fromImage(self.playing_field))
-            #remvove semaphore after drawing the snake
-            self.moveSemaphore=False
+            # resets the semaphore after drawing the snake
+            self.isChangingDirection = False
         else:
             self.stopGame()
 
-        # get and delete the end of the snake only if it does not push a fruit
+        # gets and deletes the end of the snake only
+        # if it does not push a fruit
         if not self.pushedFruit(x_value, y_value):
             x_value = self.snake_position[-1][0]
             y_value = self.snake_position[-1][1]
@@ -120,7 +119,7 @@ class SnakeLabel(qw.QLabel):
             self.achieved_points_since_speed_increase += 1
             self.score += 1
 
-            # increase speed when necessary
+            # increases speed when necessary
             if self.achieved_points_since_speed_increase >= self.points_to_speed_increase:
                 self.increaseSpeed()
 
@@ -165,7 +164,7 @@ class SnakeLabel(qw.QLabel):
 
     def keyPressEvent(self, event):
         """
-        Translates the pressed key into an integer and
+        Translates the pressed arrow key into an integer and
         stores it into the "direction" variable. Only allows
         direction changes to the right or to the left relative to
         the actual moving direction.
@@ -175,34 +174,29 @@ class SnakeLabel(qw.QLabel):
         Down = 2
         Left = 3
 
-        Pauses and restarts the game.
-
-        P = pauses or restarts the game
+        Uses the 'P' key to pause or restart the game.
         """
-        # controls the snake
-        # if semaphore is set do nothing otherwise set direction and set
-        # semaphore
-        if not self.moveSemaphore:
-                if event.key() == qc.Qt.Key_Up and self.direction != 2:
-                    self.direction = 0
-                    self.moveSemaphore=True
-                elif event.key() == qc.Qt.Key_Right and self.direction != 3:
-                    self.direction = 1
-                    self.moveSemaphore=True
-                elif event.key() == qc.Qt.Key_Down and self.direction != 0:
-                    self.direction = 2
-                    self.moveSemaphore=True
-                elif event.key() == qc.Qt.Key_Left and self.direction != 1:
-                    self.direction = 3
-                    self.moveSemaphore=True
+        # uses the arrow keys to control the snake
+        #
+        # changing the direction is only allowed if last change
+        # is already drawn
+        if not self.isChangingDirection:
+            if event.key() == qc.Qt.Key_Up and self.direction != 2:
+                self.direction = 0
+            elif event.key() == qc.Qt.Key_Right and self.direction != 3:
+                self.direction = 1
+            elif event.key() == qc.Qt.Key_Down and self.direction != 0:
+                self.direction = 2
+            elif event.key() == qc.Qt.Key_Left and self.direction != 1:
+                self.direction = 3
+            # sets the semaphore which locks further direction changes
+            self.isChangingDirection = True
+        # uses the 'p' key to pause or restart the game
         if event.key() == qc.Qt.Key_P:
-            # pauses the game if it is actually running
             if self.isRunning:
                 self.pauseGame()
             else:
                 self.startGame()
-        else:
-            pass
 
     def calcSpeed(self, speed):
         """
