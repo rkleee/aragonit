@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 #loads data from given file
 def loadData(fileName):
-        return np.loadtxt(fileName,comments="#")
+        return np.loadtxt(fileName,comments="#",skiprows=3)
 
 #returns data[start:end] from given colum
 def getDataSegment(data,start,end,colum):
@@ -17,7 +17,7 @@ def plotGraphs(temperature,rain,start,end):
         #define x-asis from start to end
         x=np.linspace(start,end,end-start)
         #use subplots
-        fig,ax1=plt.subplots()
+        OriginalData,ax1=plt.subplots()
         #ax1 for temperature
         ax1.plot(x,temperature,linestyle,color=temperature_color)
         ax1.tick_params('y',colors=temperature_color)
@@ -26,24 +26,35 @@ def plotGraphs(temperature,rain,start,end):
         ax2=ax1.twinx()
         ax2.tick_params('y',colors=rain_color)
         ax2.plot(x,rain,"-",color=rain_color)
+        plt.show()
         #----------------
         #select every selections.th point from the data
         selection=10
         #selected x_values
-        x_interpol=np.arange(0,end-start,selection)
+        x_selected=np.arange(start,end,selection)
         #degree of interpolated polynomial
-        degree=3
+        degree=5
         #interpolate polynomial with selected data
-        coeff_temperature=np.polyfit(x_interpol,temperature[x_interpol],degree)
+        temperature_selected=temperature[x_selected-start]
+        coeff_temperature=np.polyfit(x_selected,temperature_selected,degree)
         p_temperature=np.poly1d(coeff_temperature)
-        #calculate polynomial at all positions (be carefull to use offset)
-        values_temperature=p_temperature(x-start)
-        #plot interpolated values
-        ax1.plot(x,values_temperature,"--",color="darksalmon")
-        #analog
-        coeff_rain=np.polyfit(x_interpol,rain[x_interpol],degree)
+        #calculate polynomial at all positions
+        values_temperature=p_temperature(x)
+        rain_selected=rain[x_selected-start]
+        coeff_rain=np.polyfit(x_selected,rain_selected,degree)
         p_rain=np.poly1d(coeff_rain)
-        values_rain=p_rain(x-start)
+        values_rain=p_rain(x)
+        #use subplots
+        SelectedData,ax1=plt.subplots()
+        #draw selected data
+        ax1.plot(x_selected,temperature_selected,".",color=temperature_color)
+        ax1.tick_params('y',colors=temperature_color)
+        ax1.set_xlabel("Zeitpunkt")
+        ax1.plot(x,values_temperature,"--",color="darksalmon")
+        #ax2 with same x-axes for rain
+        ax2=ax1.twinx()
+        ax2.tick_params('y',colors=rain_color)
+        ax2.plot(x_selected,rain_selected,".",color=rain_color)
         ax2.plot(x,values_rain,"--",color="steelblue")
         plt.show()
 
@@ -51,12 +62,12 @@ if __name__ == "__main__":
 	#colum index for temperature
 	TX=6
 	#colum index for rain
-	RR=13
+	RR=12
 	#load data from file
 	data=loadData("data.txt")
 	#extract data
-	start=100
-	end=225
+	start=0
+	end=400
 	temperature=getDataSegment(data,start,end,TX)
 	rain=getDataSegment(data,start,end,RR)
 	plotGraphs(temperature,rain,start,end)
