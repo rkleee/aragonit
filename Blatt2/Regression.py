@@ -20,7 +20,8 @@ def linearRegression(x,y):
         return np.array([m,average_y-m*average_x])
 
 #creates system of equations and solves it using Matrix-Operations
-def quadraticRegression(x,y):
+#-----just for controll purpose sould not be used----------
+def quadraticRegression_Matrix(x,y):
         A=np.zeros(shape=(3,3));       
         res_a=np.inner(x**2,y)
         res_b=np.inner(x,y)
@@ -30,6 +31,24 @@ def quadraticRegression(x,y):
         A[1]=[np.sum(x**3), np.sum(x**2), np.sum(x)]
         A[2]=[np.sum(x**2), np.sum(x),len(x)]
         return np.dot(np.linalg.inv(A),res)
+
+#solves 3x3 equation-system explicit
+def quadraticRegression(x,y):
+        #define variables from equation system
+        t=np.sum(x**2)
+        s=np.sum(x**4)/t
+        v=np.sum(x**3)/t
+        k=np.sum(x)/t
+        z=len(x)/t
+        p=np.inner(x**2,y)/t
+        j=np.inner(x,y)/t
+        q=np.sum(y)/t
+        #calculate solution
+        temp=v*v-s
+        c=((1-v*k)*(p*v-j*s)-(j-v*q)*temp)/((1-v*k)*(v-k*s)-(k-v*z)*temp)
+        b=(p*v-j*s-c*(v-k*s))/temp
+        a=(p-c-v*b)/s
+        return np.array([a,b,c])
         
 #coeff [m,b] evaluates m*x+b
 def linearFunction(coeff,x):
@@ -67,6 +86,9 @@ def plotGraphs(temperature,rain,start,end):
         #----Aufgabe 1.4 quadratische Regression (zweiter Teil)-----
         coeff_temperature=quadraticRegression(x,temperature)
         coeff_rain=quadraticRegression(x,rain)
+        #check correct result with Matrix-version
+        #print(coeff_rain)
+        #print(quadraticRegression_Matrix(x,rain))
         values_temperature=quadraticFunction(coeff_temperature,x)
         values_rain=quadraticFunction(coeff_rain,x)
         ax1.plot(x,values_temperature,"-.",color="darkorange")
@@ -95,8 +117,8 @@ if __name__ == "__main__":
 	#load data from file
 	data=loadData("data.txt")
 	#extract data
-	start=50
-	end=400
+	start=180
+	end=350
 	temperature=getDataSegment(data,start,end,TX)
 	rain=getDataSegment(data,start,end,RR)
 	plotGraphs(temperature,rain,start,end)
