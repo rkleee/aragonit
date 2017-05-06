@@ -1,13 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-#loads data from given file
-def loadData(fileName):
-        return np.loadtxt(fileName,comments="#",skiprows=3)
-
-#returns data[start:end] from given colum
-def getDataSegment(data,start,end,colum):
-        return data[start:end:,colum]
+import ReadData
 
 #calulates m,b for m*x+b for regression on x and y
 def linearRegression(x,y):
@@ -110,16 +103,8 @@ def plotGraphs(temperature,rain,start,end):
         plt.show()
 
 if __name__ == "__main__":
-	#colum index for temperature
-	TX=6
-	#colum index for rain
-	RR=12
-	#load data from file
-	data=loadData("data.txt")
-	#extract data
-	start=180
-	end=350
-	temperature=getDataSegment(data,start,end,TX)
-	rain=getDataSegment(data,start,end,RR)
+	start=0
+	end=400
+	(temperature,rain)=ReadData.getData(start,end)
 	plotGraphs(temperature,rain,start,end)
 	
