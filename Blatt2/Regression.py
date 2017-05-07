@@ -51,6 +51,7 @@ def linearFunction(coeff,x):
 def quadraticFunction(coeff,x):
         return coeff[0]*x**2+coeff[1]*x+coeff[2]
 
+#initializes axes for plotting and plots temperature, rain
 def init_axes(ax1,x,rain,temperature):
         #ax1 for temperature
         ax1.plot(x,temperature,color="red")
@@ -62,27 +63,24 @@ def init_axes(ax1,x,rain,temperature):
         ax2.tick_params('y',colors="blue")
         ax2.plot(x,rain,"-",color="blue")
         ax2.set_ylabel("Niederschlag")
-        return (ax1,ax2)        
+        return (ax1,ax2)
 
-#plots the graphs
-def plotGraphs(temperature,rain,start,end):
-	#----Aufgabe 1.1 Darstellung des Datensatzes-------
-        #define x-asis from start to end
-        x=np.linspace(start,end,end-start)
-        #use subplots
+#calculates and plots linear Regression
+def plotLinear(x,temperature,rain):
         fig1=plt.figure()
         fig1.canvas.set_window_title("Linear Regression")
         ax1=fig1.add_subplot(111)
         (ax1,ax2)=init_axes(ax1,x,rain,temperature)
-        #----Aufgabe 1.4 lineareRegression (erster Teil)------
         coeff_temperature=linearRegression(x,temperature)
         coeff_rain=linearRegression(x,rain)
-        boundary_points=np.array([start,end])
+        boundary_points=np.array([x[0],x[len(x)-1]])
         values_temperature=linearFunction(coeff_temperature,boundary_points)
         values_rain=linearFunction(coeff_rain,boundary_points)
         ax1.plot(boundary_points,values_temperature,":",color="firebrick")
         ax2.plot(boundary_points,values_rain,":",color="royalblue")
-        #----Aufgabe 1.4 quadratische Regression (zweiter Teil)-----
+
+#calculates and plots quadratic Regression
+def plotQuadratic(x,temperature,rain):
         fig2=plt.figure()
         fig2.canvas.set_window_title("Quadratic Regression")
         ax1=fig2.add_subplot(111)
@@ -95,14 +93,14 @@ def plotGraphs(temperature,rain,start,end):
         values_temperature=quadraticFunction(coeff_temperature,x)
         values_rain=quadraticFunction(coeff_rain,x)
         ax1.plot(x,values_temperature,"-.",color="darkorange")
-        ax2.plot(x,values_rain,"-.",color="teal")
-        #----Aufgabe 1.4 (letzter Teil) für allgemeine Polynome-----
+        ax2.plot(x,values_rain,"-.",color="teal")        
+
+#calculates and plots polynomial Regression
+def plotPolynomial(x,temperature,rain,degree):
         fig3=plt.figure()
         fig3.canvas.set_window_title("Polynomial Regression")
         ax1=fig3.add_subplot(111)
         (ax1,ax2)=init_axes(ax1,x,rain,temperature)
-        #degree of interpolated polynomial
-        degree=5
         #interpolate polynomial with data
         coeff_temperature=np.polyfit(x,temperature,degree)
         coeff_rain=np.polyfit(x,rain,degree)
@@ -111,9 +109,16 @@ def plotGraphs(temperature,rain,start,end):
         #calculate polynomial at all positions
         values_temperature=p_temperature(x)
         values_rain=p_rain(x)
-        #draw curves
         ax1.plot(x,values_temperature,"--",color="darksalmon")
         ax2.plot(x,values_rain,"--",color="steelblue")
+        
+#plots the graphs
+def plotGraphs(temperature,rain,start,end):
+        x=np.linspace(start,end,end-start)
+        plotLinear(x,temperature,rain)
+        plotQuadratic(x,temperature,rain)
+        degree=6
+        plotPolynomial(x,temperature,rain,degree)
         plt.show()
 
 if __name__ == "__main__":
