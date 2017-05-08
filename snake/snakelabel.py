@@ -1,5 +1,3 @@
-import sys
-
 import numpy
 from PyQt5 import QtCore as qc
 from PyQt5 import QtGui as qg
@@ -41,7 +39,7 @@ class SnakeLabel(qw.QLabel):
         # indicates how many points are necessary to increase the speed
         self.points_to_speed_increase = 3
         # current score since the last speed increase
-        self.achieved_points_since_speed_increase = 0
+        self.points_since_speed_increase = 0
         # overall score
         self.score = 0
 
@@ -116,21 +114,21 @@ class SnakeLabel(qw.QLabel):
                 x_value, y_value, self.background_color)
             del(self.snake_position[-1])
         else:
-            self.achieved_points_since_speed_increase += 1
+            self.points_since_speed_increase += 1
             self.score += 1
 
             # increases speed when necessary
-            if self.achieved_points_since_speed_increase >= self.points_to_speed_increase:
+            if self.points_since_speed_increase >= self.points_to_speed_increase:
                 self.increaseSpeed()
 
             self.drawFruit()
 
     def crossedBorder(self, x, y):
-        """Returns true if given coordinates are outside the playing field."""
+        """Return true if given coordinates are outside the playing field."""
         return x < 0 or x >= self.width or y < 0 or y >= self.height
 
     def pushedSnake(self, x, y):
-        """Returns true if coordinates are part of the snake."""
+        """Return true if coordinates are part of the snake."""
         pushedSnake = False
         for pos in self.snake_position:
             if pos[0] == x and pos[1] == y:
@@ -139,13 +137,14 @@ class SnakeLabel(qw.QLabel):
         return pushedSnake
 
     def pushedFruit(self, x, y):
-        """Returns true if coordinates point to the fruit."""
+        """Return true if coordinates point to the fruit."""
         return self.fruit_coordinate[0] == x and self.fruit_coordinate[1] == y
 
     def drawFruit(self):
         """
-        Chooses the position of the fruit randomly and draws it if the
-        position is valid.
+        Choose the position of the fruit randomly.
+
+        Only draws the fruit if its position is valid.
         """
         # TODO: create better function to generate a new fruit position
         #
@@ -164,10 +163,11 @@ class SnakeLabel(qw.QLabel):
 
     def keyPressEvent(self, event):
         """
-        Translates the pressed arrow key into an integer and
-        stores it into the "direction" variable. Only allows
-        direction changes to the right or to the left relative to
-        the actual moving direction.
+        Translate the pressed arrow key into an integer.
+
+        Stores the last pressed key in its integer representation
+        into the "direction" variable. Only allows direction changes
+        to the right or to the left relative to the actual moving direction.
 
         Up = 0
         Right = 1
@@ -200,8 +200,9 @@ class SnakeLabel(qw.QLabel):
 
     def calcSpeed(self, speed):
         """
-        Calculates the actual timer interval (in milliseconds) from the given
-        speed attribute.
+        Calculate the actual timer interval (in milliseconds).
+
+        Uses the given speed attribute as base of the calculation.
         """
         return 1000 / speed
 

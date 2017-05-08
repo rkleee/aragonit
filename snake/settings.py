@@ -134,13 +134,25 @@ class SettingsWidget(qw.QWidget):
         self.setLayout(layout)
 
     def startGame(self):
-        # use default values for invalid inputs
-        name = ""
-        height = 20
-        width = 20
-        zoom_factor = 10
+        """
+        Start game with given setting.
+
+        Uses specified default values for invalid inputs.
+        """
+        # specifies default values
+        default_name = "Player"
+        default_height = 20
+        default_width = 20
+        default_zoom_factor = 10
+
+        # sets parameters to default values
+        name = default_name
+        height = default_height
+        width = default_width
+        zoom_factor = default_zoom_factor
         speed = self.speed_slider.value()
 
+        # overwrites default value with user input only if it is valid
         try:
             name = self.player_name_text_field.text().strip()
         except ValueError:
@@ -161,8 +173,9 @@ class SettingsWidget(qw.QWidget):
         except ValueError:
             pass
 
+        # resets default value if user input is not reasonable
         if name == "":
-            name = "Player"
+            name = default_name
         if width < 10:
             width = default_width
         if height < 10:
@@ -170,7 +183,7 @@ class SettingsWidget(qw.QWidget):
         if zoom_factor < 1:
             zoom_factor = default_zoom_factor
 
-        # opens game window
+        # starts game with specified parameters
         self.game_view = GameDialog(width, height, zoom_factor, speed, name)
         self.game_view.exec_()
 
