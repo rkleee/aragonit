@@ -184,29 +184,24 @@ def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=6):
     # computes and evaluates the corresponding interpolation polynomial
     y_values_temperature = []
     y_values_rainfall = []
+    x_temperature=[]
+    x_rainfall=[]
     for x in x_axis:
         y_temperature = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_temperature)
-        if y_temperature < -10:
-              y_values_temperature.append(-10)
-        elif y_temperature > 40:
-              y_values_temperature.append(40)
-        else:
+        if y_temperature > -10 and y_temperature < 40:
               y_values_temperature.append(y_temperature)
-
+              x_temperature.append(x)
         y_rainfall = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_rainfall)
-        if y_rainfall < -10:
-                y_values_rainfall.append(-10)
-        elif y_rainfall > 60:
-                y_values_rainfall.append(60)
-        else:
-                y_values_rainfall.append(y_rainfall)
+        if y_rainfall > -5 and y_rainfall <60:
+              y_values_rainfall.append(y_rainfall)
+              x_rainfall.append(x)
     
     #display interpolated data
-    temperature_axis.plot(x_axis, y_values_temperature,
+    temperature_axis.plot(x_temperature, y_values_temperature,
                           linewidth=2, color="yellow")
-    rainfall_axis.plot(x_axis, y_values_rainfall, linewidth=2, color="green")
+    rainfall_axis.plot(x_rainfall, y_values_rainfall, linewidth=2, color="green")
 
 
 def plotGraphs(temperature, rainfall, start, end):
@@ -224,8 +219,8 @@ def plotGraphs(temperature, rainfall, start, end):
 
 
 if __name__ == "__main__":
-    start = 80
-    end = 450
+    start = 100
+    end = 250
     # TODO: make sure that start as well as end values are valid
     (temperature, rainfall) = ReadData.getData(start, end)
     plotGraphs(temperature, rainfall, start, end)
