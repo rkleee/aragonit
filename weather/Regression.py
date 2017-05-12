@@ -1,13 +1,11 @@
-import matplotlib.pyplot as plt
+"""Plot approximation using regression."""
 import numpy as np
 
-import ReadData
-
-
-# calulates m,b for m*x+b for regression on x and y
+import PlotGraph
 
 
 def linearRegression(x, y):
+    """Calulate m and b for (m * x + b) for regression on x and y."""
     n = len(x)
     average_x = np.sum(x) / n
     average_y = np.sum(y) / n
@@ -17,11 +15,9 @@ def linearRegression(x, y):
         (n * average_x * average_x - squared_sum)
     return np.array([m, average_y - m * average_x])
 
-# creates system of equations and solves it using Matrix-Operations
-# -----just for controll purpose sould not be used----------
 
-
-def quadraticRegression_Matrix(x, y):
+def quadraticRegressionMatrix(x, y):
+    """Create equation system and solve it using matrix operations."""
     A = np.zeros(shape=(3, 3))
     res_a = np.inner(x**2, y)
     res_b = np.inner(x, y)
@@ -32,10 +28,9 @@ def quadraticRegression_Matrix(x, y):
     A[2] = [np.sum(x**2), np.sum(x), len(x)]
     return np.dot(np.linalg.inv(A), res)
 
-# solves 3x3 equation-system explicit
-
 
 def quadraticRegression(x, y):
+    """Solve 3 x 3 equation system explicitly."""
     # define variables from equation system
     t = np.sum(x**2)
     s = np.sum(x**4) / t
@@ -65,89 +60,55 @@ def linearFunction(coeff, x):
 def quadraticFunction(coeff, x):
     return coeff[0] * x**2 + coeff[1] * x + coeff[2]
 
-# initializes axes for plotting and plots temperature, rain
 
-
-def init_axes(ax1, x, rain, temperature):
-    # ax1 for temperature
-    ax1.plot(x, temperature, color="red")
-    ax1.tick_params('y', colors="red")
-    ax1.set_xlabel("Zeitpunkt")
-    ax1.set_ylabel("Temperatur")
-    # ax2 with same x-axes for rain
-    ax2 = ax1.twinx()
-    ax2.tick_params('y', colors="blue")
-    ax2.plot(x, rain, "-", color="blue")
-    ax2.set_ylabel("Niederschlag")
-    return (ax1, ax2)
-
-# calculates and plots linear Regression
-
-
-def plotLinear(x, temperature, rain):
-    fig1 = plt.figure()
-    fig1.canvas.set_window_title("Linear Regression")
-    ax1 = fig1.add_subplot(111)
-    (ax1, ax2) = init_axes(ax1, x, rain, temperature)
-    coeff_temperature = linearRegression(x, temperature)
-    coeff_rain = linearRegression(x, rain)
-    boundary_points = np.array([x[0], x[len(x) - 1]])
+def plotLinear(x_axis, temperature, rainfall):
+    """Plot linear regression."""
+    temperature_axis, rainfall_axis = PlotGraph.initGraph(
+        x_axis, temperature, rainfall, "Linear regression")
+    coeff_temperature = linearRegression(x_axis, temperature)
+    coeff_rain = linearRegression(x_axis, rainfall)
+    boundary_points = np.array([x_axis[0], x_axis[len(x_axis) - 1]])
     values_temperature = linearFunction(coeff_temperature, boundary_points)
     values_rain = linearFunction(coeff_rain, boundary_points)
-    ax1.plot(boundary_points, values_temperature, ":", color="firebrick")
-    ax2.plot(boundary_points, values_rain, ":", color="royalblue")
+    temperature_axis.plot(
+        boundary_points, values_temperature, linewidth=2, color="yellow")
+    rainfall_axis.plot(boundary_points, values_rain,
+                       linewidth=2, color="green")
 
-# calculates and plots quadratic Regression
 
-
-def plotQuadratic(x, temperature, rain):
-    fig2 = plt.figure()
-    fig2.canvas.set_window_title("Quadratic Regression")
-    ax1 = fig2.add_subplot(111)
-    (ax1, ax2) = init_axes(ax1, x, rain, temperature)
-    coeff_temperature = quadraticRegression(x, temperature)
-    coeff_rain = quadraticRegression(x, rain)
+def plotQuadratic(x_axis, temperature, rainfall):
+    """Plot quadratic regression."""
+    temperature_axis, rainfall_axis = PlotGraph.initGraph(
+        x_axis, temperature, rainfall, "Quadratic regression")
+    coeff_temperature = quadraticRegression(x_axis, temperature)
+    coeff_rain = quadraticRegression(x_axis, rainfall)
     # check correct result with Matrix-version
     # print(coeff_rain)
-    # print(quadraticRegression_Matrix(x,rain))
-    values_temperature = quadraticFunction(coeff_temperature, x)
-    values_rain = quadraticFunction(coeff_rain, x)
-    ax1.plot(x, values_temperature, "-.", color="darkorange")
-    ax2.plot(x, values_rain, "-.", color="teal")
+    # print(quadraticRegressionMatrix(x_axis, rainfall))
+    values_temperature = quadraticFunction(coeff_temperature, x_axis)
+    values_rain = quadraticFunction(coeff_rain, x_axis)
+    temperature_axis.plot(x_axis, values_temperature,
+                          linewidth=2, color="yellow")
+    rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")
 
-# calculates and plots polynomial Regression
 
+def plotPolynomial(x_axis, temperature, rainfall, degree=3):
+    """Plot polynomial regression."""
+    temperature_axis, rainfall_axis = PlotGraph.initGraph(
+        x_axis, temperature, rainfall,
+        "Polynomial regression (degree " + str(degree) + ")")
 
-def plotPolynomial(x, temperature, rain, degree):
-    fig3 = plt.figure()
-    fig3.canvas.set_window_title("Polynomial Regression")
-    ax1 = fig3.add_subplot(111)
-    (ax1, ax2) = init_axes(ax1, x, rain, temperature)
-    # interpolate polynomial with data
-    coeff_temperature = np.polyfit(x, temperature, degree)
-    coeff_rain = np.polyfit(x, rain, degree)
+    # interpolates polynomial with data
+    coeff_temperature = np.polyfit(x_axis, temperature, degree)
+    coeff_rain = np.polyfit(x_axis, rainfall, degree)
     p_temperature = np.poly1d(coeff_temperature)
     p_rain = np.poly1d(coeff_rain)
-    # calculate polynomial at all positions
-    values_temperature = p_temperature(x)
-    values_rain = p_rain(x)
-    ax1.plot(x, values_temperature, "--", color="darksalmon")
-    ax2.plot(x, values_rain, "--", color="steelblue")
 
-# plots the graphs
+    # calculates polynomial at all positions
+    values_temperature = p_temperature(x_axis)
+    values_rain = p_rain(x_axis)
 
-
-def plotGraphs(temperature, rain, start, end):
-    x = np.linspace(start, end, end - start)
-    plotLinear(x, temperature, rain)
-    plotQuadratic(x, temperature, rain)
-    degree = 6
-    plotPolynomial(x, temperature, rain, degree)
-    plt.show()
-
-
-if __name__ == "__main__":
-    start = 0
-    end = 200
-    (temperature, rain) = ReadData.getData(start, end)
-    plotGraphs(temperature, rain, start, end)
+    # plots computed approximation
+    temperature_axis.plot(x_axis, values_temperature,
+                          linewidth=2, color="yellow")
+    rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")

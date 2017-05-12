@@ -15,7 +15,7 @@ def getDataSegment(data, column, start, end):
 def getData(start, end):
     """Return temperature and rainfall values in the given interval."""
     # loads all data from given file
-    data = loadData("data.txt")
+    data = loadData("mannheim.txt")
     # column index for temperature
     TX = 6
     # column index for rainfall

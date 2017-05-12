@@ -6,7 +6,7 @@ import numpy as np
 import PlotGraph
 
 
-def plotConstantAverage(x_axis, temperature, rainfall):
+def plotConstant(x_axis, temperature, rainfall):
     """Plot given data with standard average."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall, "Graph with constant average")
@@ -20,7 +20,7 @@ def plotConstantAverage(x_axis, temperature, rainfall):
     rainfall_axis.axhline(avg_rainfall, linewidth=2, color='green')
 
 
-def plotPiecewiseAverage(x_axis, temperature, rainfall, intervals=20):
+def plotPiecewise(x_axis, temperature, rainfall, intervals=20):
     """Divide data into intervals and plot the average over these intervals."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
@@ -68,7 +68,7 @@ def plotPiecewiseAverage(x_axis, temperature, rainfall, intervals=20):
     rainfall_axis.plot(x_values, y_values_rainfall, linewidth=2, color="green")
 
 
-def plotRunningAverage(x_axis, temperature, rainfall, interval_width=20):
+def plotRunning(x_axis, temperature, rainfall, interval_width=20):
     """Plot the running average on given data."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,

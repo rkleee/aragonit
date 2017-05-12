@@ -5,6 +5,7 @@ import numpy as np
 import Average
 import Interpolation
 import ReadData
+import Regression
 
 
 def plotGraphs(temperature, rainfall, start, end):
@@ -12,12 +13,16 @@ def plotGraphs(temperature, rainfall, start, end):
     x_axis = np.arange(start, end)
 
     # uses the average to approximate the data
-    Average.plotConstantAverage(x_axis, temperature, rainfall)
-    Average.plotPiecewiseAverage(x_axis, temperature, rainfall)
-    Average.plotRunningAverage(x_axis, temperature, rainfall)
+    Average.plotConstant(x_axis, temperature, rainfall)
+    Average.plotPiecewise(x_axis, temperature, rainfall)
+    Average.plotRunning(x_axis, temperature, rainfall)
 
     # uses the Lagrange polynomial to approximate the data
     Interpolation.plotLagrangePolynomial(x_axis, temperature, rainfall)
+
+    Regression.plotLinear(x_axis, temperature, rainfall)
+    Regression.plotQuadratic(x_axis, temperature, rainfall)
+    Regression.plotPolynomial(x_axis, temperature, rainfall)
     plt.show()
 
 
