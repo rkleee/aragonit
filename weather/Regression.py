@@ -1,4 +1,6 @@
 """Plot approximation using regression."""
+import math
+
 import numpy as np
 
 import PlotGraph
@@ -92,23 +94,79 @@ def plotQuadratic(x_axis, temperature, rainfall):
     rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")
 
 
+def createRegressionPolynomial(x_axis, data, degree):
+    """Return x values evaluated on regression polynomial with given degree."""
+    # computes the coefficients of the corresponding regression polynomial
+    coeff_data = np.polyfit(x_axis, data, degree)
+    # creates a function out of the computed coefficients
+    func_data = np.poly1d(coeff_data)
+    # calculates the function values for all x values
+    values_data = func_data(x_axis)
+    return values_data
+
+
 def plotPolynomial(x_axis, temperature, rainfall, degree=3):
     """Plot polynomial regression."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
-        "Polynomial regression (degree " + str(degree) + ")")
+        "Polynomial regression (degree: " + str(degree) + ")")
 
-    # interpolates polynomial with data
-    coeff_temperature = np.polyfit(x_axis, temperature, degree)
-    coeff_rain = np.polyfit(x_axis, rainfall, degree)
-    p_temperature = np.poly1d(coeff_temperature)
-    p_rain = np.poly1d(coeff_rain)
-
-    # calculates polynomial at all positions
-    values_temperature = p_temperature(x_axis)
-    values_rain = p_rain(x_axis)
+    # creates corresponding regression polynomial and
+    # computes all necessary function values
+    values_temperature = createRegressionPolynomial(
+        x_axis, temperature, degree)
+    values_rain = createRegressionPolynomial(x_axis, rainfall, degree)
 
     # plots computed approximation
     temperature_axis.plot(x_axis, values_temperature,
                           linewidth=2, color="yellow")
     rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")
+
+
+def plotMovingLeastSquares(x_axis, temperature, rainfall, interval_width=9, degree=2):
+    """Plot moving least squares (MLS) approximation."""
+    temperature_axis, rainfall_axis = PlotGraph.initGraph(
+        x_axis, temperature, rainfall,
+        "Moving least squares (MLS) approximation (interval width: "
+        + str(interval_width) + ", degree: " + str(degree) + ")")
+
+    # constant to scale the x values if the
+    # plot's x axis does not start at 0
+    lowest_x_value = x_axis[0]
+
+    x_values = []
+    y_values_temperature = []
+    y_values_rainfall = []
+
+    # moves the chosen interval step by step over the whole array
+    # while calculating the regression polynomial over each
+    # intermediate interval and plotting the correponding function
+    # value at the middle of the interval
+    for i in range(interval_width, len(temperature) + 1):
+        # calculates start and end index of the interval
+        interval_start = i - interval_width
+        interval_end = i
+
+        # creates the specified interval of the x axis
+        interval = np.arange(interval_start + lowest_x_value,
+                             interval_end + lowest_x_value)
+
+        # creates corresponding regression polynomial and
+        # computes the function value of the middle x value
+        values_temperature = createRegressionPolynomial(
+            interval, temperature[interval_start:interval_end], degree)
+        values_rainfall = createRegressionPolynomial(
+            interval, rainfall[interval_start:interval_end], degree)
+
+        # computes the x value in the middle of the interval
+        x_value = ((interval_start + interval_end) // 2) + lowest_x_value
+        interval_middle_index = math.floor(interval_width / 2)
+
+        # inserts calculated values to the corresponding lists
+        x_values.append(x_value)
+        y_values_temperature.append(values_temperature[interval_middle_index])
+        y_values_rainfall.append(values_rainfall[interval_middle_index])
+
+    temperature_axis.plot(x_values, y_values_temperature,
+                          linewidth=2, color="yellow")
+    rainfall_axis.plot(x_values, y_values_rainfall, linewidth=2, color="green")

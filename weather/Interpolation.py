@@ -24,7 +24,7 @@ def calcInterpolationPolynomial(x, x_values, y_values):
     return result
 
 
-def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=10):
+def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=5):
     """Use Lagrange interpolation to approximate the data."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
@@ -32,7 +32,7 @@ def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=10):
 
     # gets x values of equally distributed points within the data
     x_chosen_points = np.linspace(x_axis[0], x_axis[-1], control_points,
-                                  endpoint=False, dtype=np.int16)
+                                  endpoint=False, dtype=np.int64)
 
     # constant to scale the x values if the
     # plot's x axis does not start at 0
@@ -66,18 +66,21 @@ def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=10):
     # polynomial while ignoring obviously invalid data points
     # (i.e. data points which are either too small or too big)
     for x in x_axis:
+        # interpolates the temperature data
         y_temperature = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_temperature)
-        if y_temperature > -20 and y_temperature < 50:
-            x_values_temperature.append(x)
-            y_values_temperature.append(y_temperature)
+        # if y_temperature > -20 and y_temperature < 50:
+        x_values_temperature.append(x)
+        y_values_temperature.append(y_temperature)
+
+        # interpolates the rainfall data
         y_rainfall = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_rainfall)
-        if y_rainfall > -20 and y_rainfall < 60:
-            x_values_rainfall.append(x)
-            y_values_rainfall.append(y_rainfall)
+        # if y_rainfall > -20 and y_rainfall < 60:
+        x_values_rainfall.append(x)
+        y_values_rainfall.append(y_rainfall)
 
-    # display interpolated data
+    # displays interpolated data
     temperature_axis.plot(x_values_temperature, y_values_temperature,
                           linewidth=2, color="yellow")
     rainfall_axis.plot(x_values_rainfall, y_values_rainfall,

@@ -1,4 +1,4 @@
-"""Module to plot data with different approximations."""
+"""Module to plot data using different approximation methods."""
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,12 +23,13 @@ def plotGraphs(temperature, rainfall, start, end):
     Regression.plotLinear(x_axis, temperature, rainfall)
     Regression.plotQuadratic(x_axis, temperature, rainfall)
     Regression.plotPolynomial(x_axis, temperature, rainfall)
+    Regression.plotMovingLeastSquares(x_axis, temperature, rainfall)
     plt.show()
 
 
 if __name__ == "__main__":
-    start = 0
-    end = 500
+    start = 20
+    end = 380
     # TODO: make sure that start as well as end values are valid
     (temperature, rainfall) = ReadData.getData(start, end)
     plotGraphs(temperature, rainfall, start, end)
