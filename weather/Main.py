@@ -28,8 +28,8 @@ def plotGraphs(temperature, rainfall, start, end):
 
 
 if __name__ == "__main__":
-    start = 20
-    end = 380
+    start = 100
+    end = 300
     # TODO: make sure that start as well as end values are valid
     (temperature, rainfall) = ReadData.getData(start, end)
     plotGraphs(temperature, rainfall, start, end)

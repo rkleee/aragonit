@@ -62,6 +62,12 @@ def linearFunction(coeff, x):
 def quadraticFunction(coeff, x):
     return coeff[0] * x**2 + coeff[1] * x + coeff[2]
 
+def evaluatePolynomial(coeff,x):
+    func_data = np.poly1d(coeff)
+    # calculates the function values for all x values
+    values_data = func_data(x)
+    return values_data
+
 
 def plotLinear(x_axis, temperature, rainfall):
     """Plot linear regression."""
@@ -99,13 +105,39 @@ def createRegressionPolynomial(x_axis, data, degree):
     # computes the coefficients of the corresponding regression polynomial
     coeff_data = np.polyfit(x_axis, data, degree)
     # creates a function out of the computed coefficients
-    func_data = np.poly1d(coeff_data)
-    # calculates the function values for all x values
-    values_data = func_data(x_axis)
-    return values_data
+    return coeff_data
 
+#calculates the regression error of the given polynomial with test data
+def RegressionError(coeff,x_test,y_test):
+    func = np.poly1d(coeff)
+    return np.average((func(x_test)-y_test)**2)
 
-def plotPolynomial(x_axis, temperature, rainfall, degree=3):
+#Be carefull: This implementation might be slow for big dataSets!!
+#calcualtes Average Regreesion error for given data by randomply splitting data
+# and fiting polyomial with given degree on the train data
+def RegressionAverageError(x_axis,data,degree,n=10):
+    error=0
+    #repeat n times for average
+    for k in range(n):
+        #randomly permute x_axis
+        permuted_axis=np.random.permutation(x_axis)
+        permuted_data=[]
+        #match x-values with data values
+        for i in range(len(permuted_axis)):
+                for j in range(len(x_axis)):
+                        if x_axis[j]==permuted_axis[i]:
+                             permuted_data.append(data[j])
+        #split x_values and data values in train and test set
+        (x_test,x_train)=np.array_split(permuted_axis,2)
+        (values_test,values_train)=np.array_split(permuted_data,2)
+        #calculate Regression polynomial
+        coeff_data= createRegressionPolynomial(x_train,values_train,degree)
+        #calcualte Regression Error for this permuation
+        error+=RegressionError(coeff_data,x_test,values_test)
+    #average over all
+    return error/n
+
+def plotPolynomial(x_axis, temperature, rainfall, degree=4):
     """Plot polynomial regression."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
@@ -113,17 +145,30 @@ def plotPolynomial(x_axis, temperature, rainfall, degree=3):
 
     # creates corresponding regression polynomial and
     # computes all necessary function values
-    values_temperature = createRegressionPolynomial(
+    coeff_temperature = createRegressionPolynomial(
         x_axis, temperature, degree)
-    values_rain = createRegressionPolynomial(x_axis, rainfall, degree)
+    values_temperature=evaluatePolynomial(coeff_temperature,x_axis)
+    coeff_rain = createRegressionPolynomial(x_axis, rainfall, degree)
+    values_rain= evaluatePolynomial(coeff_rain,x_axis)
 
     # plots computed approximation
     temperature_axis.plot(x_axis, values_temperature,
                           linewidth=2, color="yellow")
     rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")
+    
+    temperature_Regression_Error=[]
+    rainfall_Regression_Error=[]
+    # calculate Average Regression Error for degrees from 0 to 10
+    for degree in range(10):
+        temperature_Regression_Error.append(RegressionAverageError(x_axis,temperature,degree))
+        rainfall_Regression_Error.append(RegressionAverageError(x_axis,rainfall,degree))
+    print(temperature_Regression_Error)
+    print(rainfall_Regression_Error)
+    
+    #To-Do: Plot degree of polynomial and corresponding Regression Error
 
 
-def plotMovingLeastSquares(x_axis, temperature, rainfall, interval_width=9, degree=2):
+def plotMovingLeastSquares(x_axis, temperature, rainfall, interval_width=9, degree=3):
     """Plot moving least squares (MLS) approximation."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
@@ -153,10 +198,12 @@ def plotMovingLeastSquares(x_axis, temperature, rainfall, interval_width=9, degr
 
         # creates corresponding regression polynomial and
         # computes the function value of the middle x value
-        values_temperature = createRegressionPolynomial(
+        coeff_temperature = createRegressionPolynomial(
             interval, temperature[interval_start:interval_end], degree)
-        values_rainfall = createRegressionPolynomial(
+        values_temperature = evaluatePolynomial(coeff_temperature,interval)
+        coeff_rainfall = createRegressionPolynomial(
             interval, rainfall[interval_start:interval_end], degree)
+        values_rainfall = evaluatePolynomial(coeff_rainfall,interval)
 
         # computes the x value in the middle of the interval
         x_value = ((interval_start + interval_end) // 2) + lowest_x_value
