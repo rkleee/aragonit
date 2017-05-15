@@ -62,9 +62,7 @@ def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=5):
     y_values_temperature = []
     y_values_rainfall = []
 
-    # computes and evaluates the corresponding interpolation
-    # polynomial while ignoring obviously invalid data points
-    # (i.e. data points which are either too small or too big)
+    # computes and evaluates the corresponding interpolation polynomial
     for x in x_axis:
         # interpolates the temperature data
         y_temperature = calcInterpolationPolynomial(
