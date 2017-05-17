@@ -137,7 +137,7 @@ def plotQuadratic(x_axis, temperature, rainfall):
     rainfall_axis.plot(x_axis, values_rain, linewidth=2, color="green")
 
 
-def plotPolynomial(x_axis, temperature, rainfall, degree=4):
+def plotPolynomial(x_axis, temperature, rainfall, degree=3,maxErrorDegree=16):
     """Plot polynomial regression."""
     temperature_axis, rainfall_axis = PlotGraph.initGraph(
         x_axis, temperature, rainfall,
@@ -159,13 +159,19 @@ def plotPolynomial(x_axis, temperature, rainfall, degree=4):
     temperature_Regression_Error = []
     rainfall_Regression_Error = []
     # calculate Average Regression Error for degrees from 0 to 10
-    for degree in range(10):
+    for degree in range(maxErrorDegree):
         temperature_Regression_Error.append(
             RegressionAverageError(x_axis, temperature, degree))
         rainfall_Regression_Error.append(
             RegressionAverageError(x_axis, rainfall, degree))
-    print(temperature_Regression_Error)
-    print(rainfall_Regression_Error)
+    #plot Regression Errors
+    temperature_Error_axis, rainfall_Error_axis =PlotGraph.initGraph([],[],[],"RegressionError")
+    temperature_Error_axis.set_xlabel("Degree of polynomial")
+    temperature_Error_axis.plot(range(maxErrorDegree),temperature_Regression_Error,linewidth=2,color="red")
+    rainfall_Error_axis.plot(range(maxErrorDegree),rainfall_Regression_Error,linewidth=2,color="blue")
+
+    
+    
 
     # To-Do: Plot degree of polynomial and corresponding Regression Error
 
