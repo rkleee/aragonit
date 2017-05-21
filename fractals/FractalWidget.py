@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 class FractalWidget(qw.QWidget):
 
         #constructor
-        def __init__(self,functionIndex,text):
+        def __init__(self,start,end,functionIndex,zoomFactor,text,cmap):
                 super(FractalWidget, self).__init__()
                 self.setWindowTitle("Drawing: "+text)
                 self.l=l=qw.QLabel()
@@ -18,8 +18,21 @@ class FractalWidget(qw.QWidget):
                 self.setLayout(layout)
                 self.width=1080
                 self.height=1080
-                self.real=np.linspace(-2,2,self.width)
-                self.imag=np.linspace(-2,2,self.height)
+                try:
+                        self.zoomFactor=float(zoomFactor)/2
+                except ValueError:
+                        self.zoomFactor=0.5
+                try:
+                        self.real=np.linspace(float(start),float(end),self.width)
+                        self.imag=np.linspace(float(start),float(end),self.height)
+                except ValueError:
+                        self.real=np.linspace(-2,2,self.width)
+                        self.imag=np.linspace(-2,2,self.height)
+                try:
+                        #create colormap from count
+                        self.colormap=plt.get_cmap(cmap)
+                except ValueError:
+                        self.colormap=plt.get_cmap('YlGnBu')
                 self.upper_bound=2
                 self.functionIndex=functionIndex
                 self.maxIterations=100
@@ -29,9 +42,8 @@ class FractalWidget(qw.QWidget):
 
         #uses count to calculate colors and show fractal
         def draw(self):
-                #create colormap from count
-                colormap=plt.get_cmap('magma')
-                colfloat=colormap(self.count)
+                
+                colfloat=self.colormap(self.count)
                 colint=np.asarray(colfloat*255,dtype=np.uint8)
                 #create image from data
                 img=qg.QImage(colint.data,self.width,self.height,qg.QImage.Format_RGBA8888)
@@ -123,8 +135,8 @@ class FractalWidget(qw.QWidget):
                 mid_x=e.x()/scale_x +self.imag[0]
                 mid_y=e.y()/scale_y + self.real[0]
                 #zoom 50% in
-                offset_x=x_axis/4
-                offset_y=y_axis/4
+                offset_x=x_axis*self.zoomFactor
+                offset_y=y_axis*self.zoomFactor
                 #calculate start and end points of grid
                 x_start=mid_x-offset_x
                 x_end=mid_x+offset_x
