@@ -12,44 +12,38 @@ class FractalWidget(qw.QWidget):
         def __init__(self,start,end,functionIndex,zoomFactor,text,cmap):
                 super(FractalWidget, self).__init__()
                 self.setWindowTitle("Drawing: "+text)
-                self.l=l=qw.QLabel()
                 layout=qw.QVBoxLayout()
-                layout.addWidget(l)
+                self.pixmapLabel=qw.QLabel()
+                layout.addWidget(self.pixmapLabel)
                 self.setLayout(layout)
-                self.width=1080
-                self.height=1080
-                try:
-                        self.zoomFactor=float(zoomFactor)/2
-                except ValueError:
-                        self.zoomFactor=0.5
-                try:
-                        self.real=np.linspace(float(start),float(end),self.width)
-                        self.imag=np.linspace(float(start),float(end),self.height)
-                except ValueError:
-                        self.real=np.linspace(-2,2,self.width)
-                        self.imag=np.linspace(-2,2,self.height)
-                try:
-                        #create colormap from count
-                        self.colormap=plt.get_cmap(cmap)
-                except ValueError:
-                        self.colormap=plt.get_cmap('YlGnBu')
+                #set all needed properties
+                self.width=1920
+                self.height=1920
+                #zoomfactor 0.25 zooms 25% from middle in each direction -> 50%
+                #zoomfactor 0.5  zooms 50% from middle in each direction -> no zoom
+                self.zoomFactor=zoomFactor/2
+                print(self.zoomFactor)                             
+                self.real=np.linspace(start,end,self.height)
+                self.imag=np.linspace(start,end,self.width)
+                #create colormap from count
+                self.colormap=plt.get_cmap(cmap)
                 self.upper_bound=2
                 self.functionIndex=functionIndex
-                self.maxIterations=100
+                self.maxIterations=150
+                #start calculation
                 self.createGrid()
                 self.caluclateFractal()
                 self.draw()
 
         #uses count to calculate colors and show fractal
         def draw(self):
-                
                 colfloat=self.colormap(self.count)
                 colint=np.asarray(colfloat*255,dtype=np.uint8)
                 #create image from data
                 img=qg.QImage(colint.data,self.width,self.height,qg.QImage.Format_RGBA8888)
                 #create pixmap with Image
                 pixmap=qg.QPixmap.fromImage(img)
-                self.l.setPixmap(pixmap)
+                self.pixmapLabel.setPixmap(pixmap)
                 self.show()
 
         #calculates the grid to calculate the function on
@@ -77,26 +71,26 @@ class FractalWidget(qw.QWidget):
                 if self.functionIndex==4:
                         self.sequence4()
                 if self.functionIndex==5:
-                        self.sequence5()                             
+                        self.sequence5()
+                if self.functionIndex==6:
+                        self.sequence6()                          
                 #normalize values
                 maximum=np.max(self.count)
                 minimum=np.min(self.count)
                 if maximum==0:
                         maximum=1
                 self.count=(self.count-minimum)/maximum
-                #eventually stretch points, to make bigger color difference
-                #self.count*=4
       
         #0: z=z^2+c
         def sequence0(self):
                 for i in range(self.maxIterations):
-                        self.z=np.square(self.z)+self.c
+                        self.z=np.power(self.z,2)+self.c
                         self.count[np.absolute(self.z)<self.upper_bound]+=1
 
         #1: z=2/3*(z^3-2)/z 
         def sequence1(self):
                 for i in range(self.maxIterations):
-                        self.z=2/3*(self.z**3-2)/self.z
+                        self.z=2/3*(np.power(self.z,3)-2)/self.z
                         self.count[np.absolute(self.z)<self.upper_bound]+=1
         
         #2: z=sinh(z)+c
@@ -108,13 +102,13 @@ class FractalWidget(qw.QWidget):
         #3: z=z-11/12*(z^3-1)
         def sequence3(self):
                 for i in range(self.maxIterations):
-                        self.z=self.z-11/12*(np.multiply(self.z,np.square(self.z))-1)
+                        self.z=self.z-11/12*(np.power(self.z,3)-1)
                         self.count[np.absolute(self.z)<self.upper_bound]+=1
         
         #4: z=z-11/12(z^3-1)-1/10*c
         def sequence4(self):
                 for i in range(self.maxIterations):
-                        self.z=self.z-11/12*(np.multiply(self.z,np.square(self.z))-1)-1/10*self.c
+                        self.z=self.z-11/12*(np.power(self.z,3)-1)-1/10*self.c
                         self.count[np.absolute(self.z)<self.upper_bound]+=1
         
         #5: z=z^2-0.2-0.7i
@@ -122,6 +116,12 @@ class FractalWidget(qw.QWidget):
                 for i in range(self.maxIterations):
                         self.z=np.square(self.z)-0.2-0.7j
                         self.count[np.absolute(self.z)<self.upper_bound]+=1
+
+        #6: z=z^2 -0.742+0.1i
+        def sequence6(self):
+               for i in range(self.maxIterations):
+                        self.z=np.square(self.z)-0.742+0.1j
+                        self.count[np.absolute(self.z)<self.upper_bound]+=1          
                 
         #mouse event for zooming in the clicked position will be used center
         def mouseReleaseEvent(self,e):
@@ -134,6 +134,7 @@ class FractalWidget(qw.QWidget):
                 #calculate new center
                 mid_x=e.x()/scale_x +self.imag[0]
                 mid_y=e.y()/scale_y + self.real[0]
+                print((mid_x,mid_y))
                 #zoom 50% in
                 offset_x=x_axis*self.zoomFactor
                 offset_y=y_axis*self.zoomFactor
@@ -145,6 +146,7 @@ class FractalWidget(qw.QWidget):
                 #create axis
                 self.real=np.linspace(y_start,y_end,self.width)
                 self.imag=np.linspace(x_start,x_end,self.height)
+                #start calcualtion
                 self.createGrid()
                 self.caluclateFractal()
                 self.draw()
