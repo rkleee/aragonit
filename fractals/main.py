@@ -4,7 +4,6 @@ from PyQt5 import QtWidgets as qw
 from FractalWidget import FractalWidget
 import sys
 
-
 class MainWindow(qw.QWidget):
 
         def __init__(self):
@@ -53,7 +52,7 @@ class MainWindow(qw.QWidget):
                 functionText=self.functions[functionIndex]
                 colorIndex=self.color.currentIndex()
                 col=self.colorSchema[colorIndex]
-                #convert zoom and intervall to float
+                #convert zoom and intervall to floatg
                 #on passError use default values
                 try:
                         zoom=float(self.zoomField.text())

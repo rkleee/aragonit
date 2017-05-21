@@ -4,7 +4,6 @@ from PyQt5 import QtGui as qg
 from PyQt5 import QtWidgets as qw
 import matplotlib.pyplot as plt
 
-
 #Widget class for displaying Fractals
 class FractalWidget(qw.QWidget):
 
@@ -17,19 +16,18 @@ class FractalWidget(qw.QWidget):
                 layout.addWidget(self.pixmapLabel)
                 self.setLayout(layout)
                 #set all needed properties
-                self.width=1920
-                self.height=1920
+                self.width=700
+                self.height=700
                 #zoomfactor 0.25 zooms 25% from middle in each direction -> 50%
                 #zoomfactor 0.5  zooms 50% from middle in each direction -> no zoom
-                self.zoomFactor=zoomFactor/2
-                print(self.zoomFactor)                             
+                self.zoomFactor=zoomFactor/2                        
                 self.real=np.linspace(start,end,self.height)
                 self.imag=np.linspace(start,end,self.width)
                 #create colormap from count
                 self.colormap=plt.get_cmap(cmap)
                 self.upper_bound=2
                 self.functionIndex=functionIndex
-                self.maxIterations=150
+                self.maxIterations=70
                 #start calculation
                 self.createGrid()
                 self.caluclateFractal()
@@ -134,7 +132,6 @@ class FractalWidget(qw.QWidget):
                 #calculate new center
                 mid_x=e.x()/scale_x +self.imag[0]
                 mid_y=e.y()/scale_y + self.real[0]
-                print((mid_x,mid_y))
                 #zoom 50% in
                 offset_x=x_axis*self.zoomFactor
                 offset_y=y_axis*self.zoomFactor
@@ -151,3 +148,16 @@ class FractalWidget(qw.QWidget):
                 self.caluclateFractal()
                 self.draw()
 
+        def keyReleaseEvent(self,event):
+                #I inverts zoomFactor to Zoom out
+                if event.key()==qc.Qt.Key_I:
+                        if self.zoomFactor<0.5:
+                                self.zoomFactor+=0.5
+                        elif self.zoomFactor>0.5:
+                                self.zoomFactor-=0.5
+                # Plus increases zoom 10%
+                if event.key()==qc.Qt.Key_Plus:
+                        self.zoomFactor*=0.9
+                # minus decreaes zoom 10%
+                if event.key()==qc.Qt.Key_Minus:
+                        self.zoomFactor*=1.1
