@@ -6,10 +6,10 @@ import itertools
 class Set:
     """Class representing a set of different objects."""
 
-    def __init__(self, items=None):
-        """Initialize a set with a given list of items."""
-        if items is not None:
-            self.item_list = self.eliminateDuplicates(items)
+    def __init__(self, iteratable_data=None):
+        """Initialize a set with given data."""
+        if iteratable_data is not None:
+            self.item_list = self.eliminateDuplicates(iteratable_data)
         else:
             self.item_list = []
         self.initIterator()
@@ -24,15 +24,15 @@ class Set:
 
     def __str__(self):
         """Return a string representation of all items within the set."""
-        set_string_representation = "{"
+        string_representation = "{"
         item_counter = 1
         for item in self.item_list:
-            set_string_representation += str(item)
+            string_representation += str(item)
             if item_counter < len(self):
-                set_string_representation += ", "
+                string_representation += ", "
                 item_counter += 1
-        set_string_representation += "}"
-        return set_string_representation
+        string_representation += "}"
+        return string_representation
 
     def __iter__(self):
         """Return the instance object."""
@@ -63,24 +63,20 @@ class Set:
         """Access to item via index."""
         return self.item_list[index]
 
-    def __mul__(self, other_set):
-        """Return the cartesian product of the actual set and the given one."""
-        return cartesianProduct(self, other_set)
+    def __mul__(self, iteratable_data):
+        """Return the cartesian product of the actual set and the given set."""
+        return cartesianProduct(self, iteratable_data)
 
-    def getSubset(self, selection_function):
-        """Create a subset according to the given selection function."""
-        chosen_subset = []
-        for item in self.item_list:
-            if selection_function(item):
-                chosen_subset.append(item)
-        return Set(chosen_subset)
+    def getSpecifiedSubset(self, selection_function):
+        """Create a subset according to given selection function."""
+        return getSpecifiedSubset(self, selection_function)
 
     def getPowerSet(self):
         """Return a set containing all possible subsets."""
         power_set = []
         for i in range(len(self) + 1):
-            # itertools.combinations() returns all subsets as a
-            # list of tuple instances
+            # itertools.combinations(given_list, i) returns all subsets of
+            # length i regarding the given list as a list of tuple instances
             subsets_of_length_i = itertools.combinations(self, i)
             # convert the list of tuples to a list of lists
             for subset_tuple in subsets_of_length_i:
@@ -97,13 +93,46 @@ class Set:
             copied_item_list.append(item)
         return copied_item_list
 
-    def eliminateDuplicates(self, items):
-        """Take a given list and create a copy without duplicates."""
+    def eliminateDuplicates(self, iteratable_data):
+        """Take given data and create a list without duplicates."""
         items_without_duplicates = []
-        for item in items:
+        for item in iteratable_data:
             if item not in items_without_duplicates:
                 items_without_duplicates.append(item)
         return items_without_duplicates
+
+
+class CartesianProduct(Set):
+    """Class representing the cartesian product of two iteratable classes."""
+
+    def __init__(
+            self,
+            iteratable_data_a=None,
+            iteratable_data_b=None,
+            selection_function=None):
+        """Compute the cartesian product and create a corresponding set."""
+        if selection_function is None:
+            super().__init__(
+                cartesianProduct(iteratable_data_a, iteratable_data_b)
+            )
+        else:
+            specified_subset = getSpecifiedSubset(
+                cartesianProduct(iteratable_data_a, iteratable_data_b),
+                selection_function
+            )
+            super().__init__(specified_subset)
+
+    def __call__(self, x):
+        """
+        Make the class callable.
+
+        Return the y values of all inner tuples whose x values equal the input.
+        """
+        y = []
+        for item in self.item_list:
+            if item[0] == x:
+                y.append(item)
+        return y
 
 
 def union(set_a, set_b):
@@ -136,13 +165,34 @@ def complement(set_a, set_b):
     return complement_set
 
 
-def cartesianProduct(set_a, set_b):
-    """Return the cartesian product of the two given sets."""
-    cartesian_product = []
-    for item_set_a in set_a:
-        for item_set_b in set_b:
-            cartesian_product.append([item_set_a, item_set_b])
-    return Set(cartesian_product)
+def cartesianProduct(iteratable_data_a, iteratable_data_b):
+    """Return the cartesian product of two iteratable classes."""
+    # check if one of the inputs is a None object or an empty list
+    if iteratable_data_a is None or len(iteratable_data_a) < 1:
+        if iteratable_data_b is None or len(iteratable_data_b) < 1:
+            return Set([])
+        else:
+            return Set(iteratable_data_b)
+    else:
+        if iteratable_data_b is None or len(iteratable_data_b) < 1:
+            return Set(iteratable_data_a)
+        else:
+            # both inputs are correct, therefore compute the cartesian product
+            # as usual
+            cartesian_product = []
+            for item_a in iteratable_data_a:
+                for item_b in iteratable_data_b:
+                    cartesian_product.append([item_a, item_b])
+            return Set(cartesian_product)
+
+
+def getSpecifiedSubset(iteratable_data, selection_function):
+    """Create a set containing elements specified by given function."""
+    specified_subset = []
+    for item in iteratable_data:
+        if selection_function(item):
+            specified_subset.append(item)
+    return Set(specified_subset)
 
 
 def vonNeumannOrdinalConstruction(n):
