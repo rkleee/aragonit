@@ -17,4 +17,4 @@ if __name__ == "__main__":
     # print(nodeMult)
     # print(nodeMult.evaluate())
 
-    e = mt.Expression("a")
+    e = mt.Expression("255a")

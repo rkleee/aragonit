@@ -5,69 +5,74 @@ from numbers import Number
 
 
 class Expression:
+    """Class to represent an expression and its corresponding tree."""
 
     def __init__(self, mathematical_expression=None):
-        """Create an expression tree out of given input."""
+        """Create a tree representation out of given expression."""
         # define all allowed operators and their corresponding priorities
         self.operator_priority = {
-            "^": 1,
+            "^": 1,  # power
             "*": 2,
             "/": 2,
-            "mod": 3,
+            "%": 3,  # modulo
             "+": 4,
             "-": 4
         }
+
+        # create a list containing all operator symbols to simplify lookup
         self.operator_list = list(self.operator_priority.keys())
 
-        # compute the number of letters of the longest operator name
-        self.length_of_longest_operator = 0
+        # compute the length of the longest operator name
+        self.longest_operator_length = 0
         for op in self.operator_list:
-            if len(op) > self.length_of_longest_operator:
-                self.length_of_longest_operator = len(op)
+            if len(op) > self.longest_operator_length:
+                self.longest_operator_length = len(op)
 
-        # create the expression tree
+        # store the mathematical expression
         if mathematical_expression is None:
             self.mathematical_expression = ""
-            self.root_node = None
         else:
             self.mathematical_expression = self.delete_white_spaces(
                 mathematical_expression)
-            self.root_node = None
+
+        # store the length of the encapsulated expression
+        self.mathematical_expression_length = len(mathematical_expression)
+
+        # create the expression tree
         self.create_tree()
 
-    def delete_white_spaces(self, mathematical_expression):
+    def delete_white_spaces(self, expression):
         """Remove all white spaces within a given string."""
         expression_without_white_spaces = ""
-        for character in mathematical_expression:
+        for character in expression:
             if not character.isspace():
                 expression_without_white_spaces += character
         return expression_without_white_spaces
 
     def create_tree(self):
         """Create a tree out of the internal mathematical expression."""
-        stack = []
+        # list to store the expression's different tokens in order
+        token_list = []
 
-        # temporary list to construct constants or variables with more than
-        # one character
-        temporary_list = []
+        # temporary list to construct constants or variables with
+        # more than one character
+        related_elements = []
 
         # move through the string character by character
         pointer = 0
         while (pointer < len(self.mathematical_expression)):
             character = self.mathematical_expression[pointer]
             if character.isalpha():
-                # Character is a letter.
-                # ======================
-                # Temporarily store this character in a list and add the
-                # following letters one by one to check if it
-                # form a valid operator.
+                # character is the first letter of a variable or an operator,
+                # therefore check the following letters to decide which case
+                # does apply
                 temporary_list.append(character)
                 temporary_pointer = pointer + 1
                 temporary_length = 2
                 found_operator = False
                 while (
                     temporary_pointer < len(self.mathematical_expression)
-                    and temporary_length <= self.length_of_longest_operator
+                    and temporary_length <= self.longest_operator_length
                 ):
                     temporary_character = self.mathematical_expression[
                         temporary_pointer
@@ -81,8 +86,7 @@ class Expression:
                             break
                         temporary_pointer += 1
                         temporary_length += 1
-                    else:
-                        
+
                 if found_operator:
                     pointer = temporary_pointer + 1
                 else:
@@ -91,33 +95,50 @@ class Expression:
                     stack.append(variable_object)
                 del temporary_list[:]
             elif character.isdigit():
-                # Character is a number.
-                # =====================
-                # The number may contain more than one digit.
-                while (
-                    pointer < len(self.mathematical_expression)
-                    and self.mathematical_expression[pointer].isdigit()
-                ):
-                    temporary_list.append(
-                        int(self.mathematical_expression[pointer])
-                    )
-                    pointer += 1
+                # Character is the first digit of an integer, therefore check
+                # if it contains more than one digit.
+                #
+                # TODO: Maybe generalize this part to support floating
+                # point numbers as well.
+                related_elements.append(int(character))
+                pointer += 1
+                while (pointer < self.mathematical_expression_length):
+                    if self.mathematical_expression[pointer].isdigit():
+                        related_elements.append(
+                            int(self.mathematical_expression[pointer])
+                        )
+                        pointer += 1
+                    elif self.mathematical_expression[pointer].isalpha():
+                        raise ValueError(
+                            "A number has to be followed by either an operator or a bracket.")
+                    else:
+                        break
+
                 # construct an integer out of the stored digits
-                length = len(temporary_list)
+                length = len(related_elements)
                 constant = 0
-                for i in temporary_list:
-                    constant += i * (10 ** (length - 1))
+                for digit in related_elements:
+                    constant += digit * (10 ** (length - 1))
                     length -= 1
-                # push the constant onto the stack
+
+                # create an object representing of the constant and insert
+                # it into the list
                 constant_object = self.Constant(constant)
-                stack.append(constant_object)
-                del temporary_list[:]
+                token_list.append(constant_object)
+                del related_elements[:]
+                print(related_elements)
             else:
                 # character is a special symbol such as / or *
                 if character == "(":
                     stack.append(character)
                 elif character == ")":
                     break
+                elif character == "+":
+                    plus = self.Operator("+", lambda x, y: x + y)
+                    stack.append(plus)
+                    print(plus)
+            pointer += 1
+        print(token_list)
 
     class Operator:
         """
