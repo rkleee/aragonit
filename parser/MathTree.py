@@ -36,7 +36,7 @@ class Expression:
                 mathematical_expression)
 
         # store the length of the encapsulated expression
-        self.mathematical_expression_length = len(mathematical_expression)
+        self.mathematical_expression_length = len(self.mathematical_expression)
 
         # create the expression tree
         self.create_tree()
@@ -53,11 +53,9 @@ class Expression:
         """Create a tree out of the internal mathematical expression."""
         # list to store the expression's different tokens in order
         token_list = []
-
         # temporary list to construct constants or variables with
         # more than one character
         related_elements = []
-
         # move through the string character by character
         pointer = 0
         while (pointer < len(self.mathematical_expression)):
@@ -66,34 +64,35 @@ class Expression:
                 # character is the first letter of a variable or an operator,
                 # therefore check the following letters to decide which case
                 # does apply
-                temporary_list.append(character)
-                temporary_pointer = pointer + 1
-                temporary_length = 2
-                found_operator = False
-                while (
-                    temporary_pointer < len(self.mathematical_expression)
-                    and temporary_length <= self.longest_operator_length
-                ):
-                    temporary_character = self.mathematical_expression[
-                        temporary_pointer
-                    ]
-                    if temporary_character.isalpha():
-                        temporary_list.append(temporary_character)
-                        actual_operator = "".join(temporary_list)
-                        if actual_operator in self.operator_list:
-                            stack.append(actual_operator)
-                            found_operator = True
-                            break
-                        temporary_pointer += 1
-                        temporary_length += 1
-
-                if found_operator:
-                    pointer = temporary_pointer + 1
-                else:
-
-                    variable_object = self.Variable(character)
-                    stack.append(variable_object)
-                del temporary_list[:]
+                related_elements.append(character)
+                pointer += 1
+                found_variable = False
+                while (pointer < self.mathematical_expression_length):
+                    if self.mathematical_expression[pointer].isalpha():
+                        related_elements.append(character)
+                        pointer += 1
+                        # only check if a valid operator is found when
+                        # the length of the found operator is less than
+                        # or equal to the length of the longest possible
+                        # operator
+                        if len(related_elements) <= self.longest_operator_length:
+                            actual_operator = "".join(related_elements)
+                            if actual_operator in self.operator_list:
+                                token_list.append(actual_operator)
+                                break
+                    else:
+                        # the actual subset of the expression has to be a
+                        # variable
+                        variable = "".join(related_elements)
+                        variable_object = self.Variable(variable)
+                        token_list.append(variable_object)
+                        found_variable = True
+                        break
+                if not found_variable:
+                    variable = "".join(related_elements)
+                    variable_object = self.Variable(variable)
+                    token_list.append(variable_object)
+                del related_elements[:]
             elif character.isdigit():
                 # Character is the first digit of an integer, therefore check
                 # if it contains more than one digit.
@@ -126,18 +125,11 @@ class Expression:
                 constant_object = self.Constant(constant)
                 token_list.append(constant_object)
                 del related_elements[:]
-                print(related_elements)
             else:
-                # character is a special symbol such as / or *
-                if character == "(":
-                    stack.append(character)
-                elif character == ")":
-                    break
-                elif character == "+":
-                    plus = self.Operator("+", lambda x, y: x + y)
-                    stack.append(plus)
-                    print(plus)
-            pointer += 1
+                # character is a special symbol such as / or * and therefore
+                # clearly an operator
+                token_list.append(character)
+                pointer += 1
         print(token_list)
 
     class Operator:
