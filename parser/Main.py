@@ -1,8 +1,6 @@
 """Module to test the parser."""
 import MathTree as mt
 
-import math
-
 if __name__ == "__main__":
     # plus = mt.Operator("+", lambda x, y: x + y)
     # minus = mt.Operator("-", lambda x, y: x - y)
@@ -17,4 +15,4 @@ if __name__ == "__main__":
     # print(nodeMult)
     # print(nodeMult.evaluate())
 
-    e = mt.Expression("5 * x")
+    e = mt.Expression("sin(abc) + (5 * abc)")

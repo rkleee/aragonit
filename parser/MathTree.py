@@ -1,5 +1,6 @@
 """Module to represent mathematical expressions as a tree."""
 
+import math
 from inspect import signature
 from numbers import Number
 
@@ -16,7 +17,10 @@ class Expression:
             "/": 2,
             "%": 3,  # modulo
             "+": 4,
-            "-": 4
+            "-": 4,
+            "sin": 5,
+            "cos": 5,
+            "exp": 5  # e^(x)
         }
 
         # create a list containing all operator symbols to simplify lookup
@@ -38,8 +42,15 @@ class Expression:
         # store the length of the encapsulated expression
         self.mathematical_expression_length = len(self.mathematical_expression)
 
-        # create the expression tree
-        self.create_tree()
+        # create the token list
+        self.token_list = self.analyze_parts_of_expression()
+
+        print(self.token_list)
+        for token in self.token_list:
+            print(token)
+
+        # create the tree
+        # self.root_node = self.create_tree()
 
     def delete_white_spaces(self, expression):
         """Remove all white spaces within a given string."""
@@ -49,8 +60,8 @@ class Expression:
                 expression_without_white_spaces += character
         return expression_without_white_spaces
 
-    def create_tree(self):
-        """Create a tree out of the internal mathematical expression."""
+    def analyze_parts_of_expression(self):
+        """Return a list of the expression's single tokens in order."""
         # list to store the expression's different tokens in order
         token_list = []
         # temporary list to construct constants or variables with
@@ -58,16 +69,16 @@ class Expression:
         related_elements = []
         # move through the string character by character
         pointer = 0
-        while (pointer < len(self.mathematical_expression)):
+        while pointer < self.mathematical_expression_length:
             character = self.mathematical_expression[pointer]
             if character.isalpha():
                 # character is the first letter of a variable or an operator,
                 # therefore check the following letters to decide which case
-                # does apply
+                # applies
                 related_elements.append(character)
                 pointer += 1
-                found_variable = False
-                while (pointer < self.mathematical_expression_length):
+                while pointer < self.mathematical_expression_length:
+                    character = self.mathematical_expression[pointer]
                     if self.mathematical_expression[pointer].isalpha():
                         related_elements.append(character)
                         pointer += 1
@@ -78,7 +89,9 @@ class Expression:
                         if len(related_elements) <= self.longest_operator_length:
                             actual_operator = "".join(related_elements)
                             if actual_operator in self.operator_list:
-                                token_list.append(actual_operator)
+                                operator_object = self.create_operator(
+                                    actual_operator)
+                                token_list.append(operator_object)
                                 break
                     else:
                         # the actual subset of the expression has to be a
@@ -86,9 +99,11 @@ class Expression:
                         variable = "".join(related_elements)
                         variable_object = self.Variable(variable)
                         token_list.append(variable_object)
-                        found_variable = True
                         break
-                if not found_variable:
+                # Check if the pointer has reached the end of the expression
+                # while scanning letters. If so, the expression ends with
+                # a variable.
+                if pointer == self.mathematical_expression_length:
                     variable = "".join(related_elements)
                     variable_object = self.Variable(variable)
                     token_list.append(variable_object)
@@ -101,7 +116,7 @@ class Expression:
                 # point numbers as well.
                 related_elements.append(int(character))
                 pointer += 1
-                while (pointer < self.mathematical_expression_length):
+                while pointer < self.mathematical_expression_length:
                     if self.mathematical_expression[pointer].isdigit():
                         related_elements.append(
                             int(self.mathematical_expression[pointer])
@@ -128,9 +143,123 @@ class Expression:
             else:
                 # character is a special symbol such as / or * and therefore
                 # clearly an operator
-                token_list.append(character)
+                operator_object = self.create_operator(character)
+                if operator_object is None:
+                    if character == "(" or character == ")":
+                        token_list.append(character)
+                    else:
+                        raise ValueError(
+                            "Expression contains unknown operators.")
+                else:
+                    token_list.append(operator_object)
                 pointer += 1
-        print(token_list)
+        return token_list
+
+    def create_operator(self, operator_symbol):
+        """Match the given operator symbol to its corresponding function."""
+        if operator_symbol == "^":
+            operator_object = self.Operator("^", lambda x, y: x ** y)
+        elif operator_symbol == "*":
+            operator_object = self.Operator("*", lambda x, y: x * y)
+        elif operator_symbol == "/":
+            operator_object = self.Operator("/", lambda x, y: x / y)
+        elif operator_symbol == "%":
+            operator_object = self.Operator("%", lambda x, y: x % y)
+        elif operator_symbol == "+":
+            operator_object = self.Operator("+", lambda x, y: x + y)
+        elif operator_symbol == "-":
+            operator_object = self.Operator("-", lambda x, y: x - y)
+        elif operator_symbol == "sin":
+            operator_object = self.Operator("sin", lambda x: math.sin(x))
+        elif operator_symbol == "cos":
+            operator_object = self.Operator("cos", lambda x: math.cos(x))
+        elif operator_symbol == "exp":
+            operator_object = self.Operator("exp", lambda x: math.exp(x))
+        else:
+            operator_object = None
+        return operator_object
+
+    def create_tree(self):
+        """Create an expression tree out of a given token list."""
+        helper_list = []
+
+        # move forwards through the token list
+        for token in self.token_list:
+            if token != ")":
+                helper_list.append(token)
+            else:
+                # move backwards through the helper list
+                pointer = len(helper_list) - 1
+                if isinstance(helper_list[pointer], self.Operator):
+                    raise ValueError("One operator has a missing argument.")
+                while helper_list[pointer] != "(":
+                    if isinstance(helper_list[pointer], self.Variable) \
+                            or isinstance(helper_list[pointer], self.Constant):
+
+                helper_list.pop()
+
+
+
+                while last_operator != "(":
+                    if last_operator.is_monovalent():
+                        last_value = value_stack.pop()
+                        node = self.Node(last_operator, last_value)
+                    else:
+
+
+            if token == ")":
+                last_item = stack.pop()
+                while last_item != "(":
+                    if isinstance(last_item, self.Constant):
+                        return None
+
+            else:
+                stack.append(token)
+
+                oken einlesen.
+
+    WENN Token IST - Argumenttrennzeichen:
+        BIS Stack - Spitze IST öffnende - Klammer:
+            Stack - Spitze ZU Ausgabe.
+            FEHLER - BEI Stack IST - LEER:
+                GRUND(1) Ein falsch platziertes Argumenttrennzeichen.
+                GRUND(2) Der schließenden Klammer geht keine öffnende voraus.
+            ENDEFEHLER
+        ENDEBIS
+    ENDEWENN
+    WENN Token IST - Operator
+        SOLANGE Stack IST - NICHT - LEER UND Stack - Spitze IST Operator UND
+        Token IST - linksassoziativ UND Präzedenz von Token IST - KLEINER Präzedenz von Stack - Spitze
+            Stack - Spitze ZU Ausgabe.
+        ENDESOLANGE
+        Token ZU Stack.
+    ENDEWENN
+    WENN Token IST öffnende - Klammer:
+        Token ZU Stack.
+    ENDEWENN
+    WENN Token IST schließende - Klammer:
+        BIS Stack - Spitze IST öffnende - Klammer:
+            FEHLER - BEI Stack IST - LEER:
+                GRUND(1) Der schließenden Klammer geht keine öffnende voraus.
+            ENDEFEHLER
+            Stack - Spitze ZU Ausgabe.
+        ENDEBIS
+        Stack - Spitze(öffnende - Klammer) entfernen
+        WENN Stack - Spitze IST - Funktion:
+            Stack - Spitze ZU Ausgabe.
+        ENDEWENN
+    ENDEWENN
+
+
+ENDESOLANGE
+BIS Stack IST - LEER:
+
+    FEHLER - BEI Stack - Spitze IST öffnende - Klammer:
+        GRUND(1) Es gibt mehr öffnende als schließende Klammern.
+    ENDEFEHLER
+    Stack - Spitze ZU Ausgabe.
+
+ENDEBIS
 
     class Operator:
         """
@@ -144,7 +273,8 @@ class Expression:
             Create an instance of Operator.
 
             operator_symbol:    a string representing the operator
-            function:           the corresponding monovalent or bivalent function
+            function:           the corresponding monovalent or bivalent
+                                function
             """
             self.operator_symbol = operator_symbol
             self.function = function
@@ -223,7 +353,7 @@ class Expression:
             if self.operator.is_monovalent:
                 # operator is monovalent, therefore just check if the
                 # corresponding data is a single value or a nested expression
-                if isinstance(self.left_child, Value):
+                if isinstance(self.left_child, self.Value):
                     return self.operator.function(self.left_child.value)
                 else:
                     return self.operator.function(self.left_child.evaluate())
@@ -231,9 +361,9 @@ class Expression:
                 # operator is bivalent, therefore check which of
                 # the two inputs is a single value and which one is a
                 # nested expression
-                if isinstance(self.left_child, Value):
+                if isinstance(self.left_child, self.Value):
                     # left child is a single value
-                    if isinstance(self.right_child, Value):
+                    if isinstance(self.right_child, self.Value):
                         return self.operator.function(
                             self.left_child.value, self.right_child.value
                         )
@@ -243,7 +373,7 @@ class Expression:
                         )
                 else:
                     # left child is a nested expression
-                    if isinstance(self.right_child, Value):
+                    if isinstance(self.right_child, self.Value):
                         return self.operator.function(
                             self.left_child.evaluate(), self.right_child.value
                         )
@@ -251,33 +381,3 @@ class Expression:
                         return self.operator.function(
                             self.left_child.evaluate(), self.right_child.evaluate()
                         )
-
-
-def plus(x, y):
-    """Plus function."""
-    return x + y
-
-
-def minus(x, y):
-    """Minus function."""
-    return x - y
-
-
-def mult(x, y):
-    """Multiplication function."""
-    return x * y
-
-
-def div(x, y):
-    """Division function."""
-    return x / y
-
-
-def mod(x, y):
-    """Modulo function."""
-    return x % y
-
-
-def pow(x, y):
-    """Power function."""
-    return x ** y
