@@ -15,4 +15,4 @@ if __name__ == "__main__":
     # print(nodeMult)
     # print(nodeMult.evaluate())
 
-    e = mt.Expression("sin(abc) + (5 * abc)")
+    e = mt.Expression("sin(abc) + (5 * 7)")

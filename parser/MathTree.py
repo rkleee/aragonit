@@ -18,9 +18,9 @@ class Expression:
             "%": 3,  # modulo
             "+": 4,
             "-": 4,
-            "sin": 5,
-            "cos": 5,
-            "exp": 5  # e^(x)
+            "sin": 0,
+            "cos": 0,
+            "exp": 0  # e^(x)
         }
 
         # create a list containing all operator symbols to simplify lookup
@@ -32,7 +32,7 @@ class Expression:
             if len(op) > self.longest_operator_length:
                 self.longest_operator_length = len(op)
 
-        # store the mathematical expression
+        # store the mathematical expression without whitespaces
         if mathematical_expression is None:
             self.mathematical_expression = ""
         else:
@@ -67,7 +67,7 @@ class Expression:
         # temporary list to construct constants or variables with
         # more than one character
         related_elements = []
-        # move through the string character by character
+        # evaluate the expression character by character
         pointer = 0
         while pointer < self.mathematical_expression_length:
             character = self.mathematical_expression[pointer]
@@ -107,7 +107,6 @@ class Expression:
                     variable = "".join(related_elements)
                     variable_object = self.Variable(variable)
                     token_list.append(variable_object)
-                del related_elements[:]
             elif character.isdigit():
                 # Character is the first digit of an integer, therefore check
                 # if it contains more than one digit.
@@ -135,14 +134,13 @@ class Expression:
                     constant += digit * (10 ** (length - 1))
                     length -= 1
 
-                # create an object representing of the constant and insert
+                # create an object representing the constant and insert
                 # it into the list
                 constant_object = self.Constant(constant)
                 token_list.append(constant_object)
-                del related_elements[:]
             else:
-                # character is a special symbol such as / or * and therefore
-                # clearly an operator
+                # character is a special symbol and could be a bracket or
+                # a single operator
                 operator_object = self.create_operator(character)
                 if operator_object is None:
                     if character == "(" or character == ")":
@@ -153,10 +151,15 @@ class Expression:
                 else:
                     token_list.append(operator_object)
                 pointer += 1
+            del related_elements[:]
         return token_list
 
     def create_operator(self, operator_symbol):
-        """Match the given operator symbol to its corresponding function."""
+        """
+        Match the given operator symbol to its corresponding function.
+
+        Return None if the operator symbol is unknown.
+        """
         if operator_symbol == "^":
             operator_object = self.Operator("^", lambda x, y: x ** y)
         elif operator_symbol == "*":
@@ -181,85 +184,64 @@ class Expression:
 
     def create_tree(self):
         """Create an expression tree out of a given token list."""
-        helper_list = []
+        operator_list = []
+        value_list = []
 
-        # move forwards through the token list
+        root_node = self.Node()
+
+        # evaluate the encapsulated list token by token
         for token in self.token_list:
-            if token != ")":
-                helper_list.append(token)
-            else:
-                # move backwards through the helper list
-                pointer = len(helper_list) - 1
-                if isinstance(helper_list[pointer], self.Operator):
-                    raise ValueError("One operator has a missing argument.")
-                while helper_list[pointer] != "(":
-                    if isinstance(helper_list[pointer], self.Variable) \
-                            or isinstance(helper_list[pointer], self.Constant):
-
-                helper_list.pop()
-
-
-
-                while last_operator != "(":
-                    if last_operator.is_monovalent():
-                        last_value = value_stack.pop()
-                        node = self.Node(last_operator, last_value)
+            if isinstance(token, self.Operator) or token == "(":
+                operator_list.append(token)
+            elif isinstance(token, self.Constant) or isinstance(token, self.Variable):
+                value_list.append(token)
+            elif token == ")":
+                if len(operator_list) <= 0:
+                    raise ValueError(
+                        "Expression contains mismatched brackets.")
+                if operator_list[-1] == "(":
+                    if len(value_list) <= 1:
+                        operator_list.pop()
                     else:
-
-
-            if token == ")":
-                last_item = stack.pop()
-                while last_item != "(":
-                    if isinstance(last_item, self.Constant):
-                        return None
+                        raise ValueError(
+                            "Expression contains mismatched brackets.")
+                if len(operator_list) <= 0:
+                    if len(value_list) == 1:
+                        root_node.set_left_child(value_list.pop())
+                    else:
+                        raise ValueError(
+                            "Expression contains mismatched brackets.")
+                actual_operator = operator_list.pop()
+                sub_node = None
+                while actual_operator != "(":
+                    if actual_operator.is_monovalent():
+                        if len(value_list) <= 0:
+                            raise ValueError(
+                                "A monovalent operator misses its argument.")
+                        actual_value = value_list.pop()
+                        sub_node = Node(actual_operator, actual_value)
+                    else:
+                        if len(value_list) <= 0:
+                            raise ValueError(
+                                "A bivalent operator misses its arguments.")
+                        right_value = value_list.pop()
+                        # peek at the operator to the left
+                        if len(operator_list) <= 0:
+                            raise ValueError(
+                                "A bivalent operator misses its arguments.")
+                        left_operator = operator_list[-1]
+                        if self.operator_priority[left_operator] <= actual_operator:
+                            if len(value_list) <= 0:
+                                raise ValueError(
+                                    "A bivalent operator misses its arguments.")
+                            left_value = value_list.pop()
+                            sub_node = self.Node(
+                                actual_operator, left_value, right_value)
+                        else:
+                            sub_node = self.Node(actual_operator, left_value=None, right_value)
 
             else:
-                stack.append(token)
-
-                oken einlesen.
-
-    WENN Token IST - Argumenttrennzeichen:
-        BIS Stack - Spitze IST öffnende - Klammer:
-            Stack - Spitze ZU Ausgabe.
-            FEHLER - BEI Stack IST - LEER:
-                GRUND(1) Ein falsch platziertes Argumenttrennzeichen.
-                GRUND(2) Der schließenden Klammer geht keine öffnende voraus.
-            ENDEFEHLER
-        ENDEBIS
-    ENDEWENN
-    WENN Token IST - Operator
-        SOLANGE Stack IST - NICHT - LEER UND Stack - Spitze IST Operator UND
-        Token IST - linksassoziativ UND Präzedenz von Token IST - KLEINER Präzedenz von Stack - Spitze
-            Stack - Spitze ZU Ausgabe.
-        ENDESOLANGE
-        Token ZU Stack.
-    ENDEWENN
-    WENN Token IST öffnende - Klammer:
-        Token ZU Stack.
-    ENDEWENN
-    WENN Token IST schließende - Klammer:
-        BIS Stack - Spitze IST öffnende - Klammer:
-            FEHLER - BEI Stack IST - LEER:
-                GRUND(1) Der schließenden Klammer geht keine öffnende voraus.
-            ENDEFEHLER
-            Stack - Spitze ZU Ausgabe.
-        ENDEBIS
-        Stack - Spitze(öffnende - Klammer) entfernen
-        WENN Stack - Spitze IST - Funktion:
-            Stack - Spitze ZU Ausgabe.
-        ENDEWENN
-    ENDEWENN
-
-
-ENDESOLANGE
-BIS Stack IST - LEER:
-
-    FEHLER - BEI Stack - Spitze IST öffnende - Klammer:
-        GRUND(1) Es gibt mehr öffnende als schließende Klammern.
-    ENDEFEHLER
-    Stack - Spitze ZU Ausgabe.
-
-ENDEBIS
+                raise ValueError("Token list contains unknown tokens.")
 
     class Operator:
         """
@@ -330,7 +312,7 @@ ENDEBIS
     class Node:
         """Class representing a single node of the expression tree."""
 
-        def __init__(self, operator, left_child, right_child=None):
+        def __init__(self, operator=None, left_child=None, right_child=None):
             """
             Create a new node.
 
@@ -348,6 +330,15 @@ ENDEBIS
             else:
                 return "(" + str(self.left_child) + str(self.operator) \
                     + str(self.right_child) + ")"
+
+        def set_operator(self, operator):
+            self.operator = operator
+
+        def set_left_child(self, left_child):
+            self.left_child = left_child
+
+        def set_right_child(self, right_child):
+            self.right_child = right_child
 
         def evaluate(self):
             if self.operator.is_monovalent:
