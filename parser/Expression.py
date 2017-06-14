@@ -1,6 +1,6 @@
 """Module to represent mathematical expressions as a tree."""
-
-import math
+from math import cos, exp, sin
+from sys import maxsize
 
 import Node
 import Operator
@@ -10,19 +10,20 @@ import Value
 class Expression:
     """Class to represent an expression and its corresponding tree."""
 
-    def __init__(self, mathematical_expression=None):
+    def __init__(self, mathematical_expression):
         """Create a tree representation out of given expression."""
-        # define all allowed operators and their corresponding priorities
+        # define all allowed operators and their corresponding
+        # priorities (lowest priority = 0)
         self.operator_priority = {
-            "^": 1,  # power
-            "*": 2,
-            "/": 2,
-            "%": 3,  # modulo
-            "+": 4,
-            "-": 4,
-            "sin": 0,
-            "cos": 0,
-            "exp": 0  # e^(x)
+            "^": 4,  # power
+            "*": 3,
+            "/": 3,
+            "%": 2,  # modulo
+            "+": 1,
+            "-": 1,
+            "sin": 5,
+            "cos": 5,
+            "exp": 5  # e^(x)
         }
 
         # create a list containing all operator symbols to simplify lookup
@@ -34,23 +35,21 @@ class Expression:
             if len(op) > self.longest_operator_length:
                 self.longest_operator_length = len(op)
 
-        # store the mathematical expression without whitespaces
-        if mathematical_expression is None:
-            self.mathematical_expression = ""
-        else:
-            self.mathematical_expression = self.delete_white_spaces(
-                mathematical_expression)
+        # store the mathematical expression without white spaces
+        self.mathematical_expression = self.delete_white_spaces(
+            mathematical_expression)
 
         # store the length of the encapsulated expression
         self.mathematical_expression_length = len(self.mathematical_expression)
 
-        # create the token list
+        # create token list
         self.token_list = self.tokenize_expression()
 
-        # create the tree
+        # create tree
         self.root_node = self.create_tree(self.token_list)
 
     def __str__(self):
+        """Return string representation of the tree."""
         return str(self.root_node)
 
     def delete_white_spaces(self, expression):
@@ -61,8 +60,9 @@ class Expression:
                 expression_without_white_spaces += character
         return expression_without_white_spaces
 
-    def evaluate(self):
-        return self.root_node.evaluate()
+    def evaluate(self, variables=None):
+        """Evaluate the tree."""
+        return self.root_node.evaluate(variables)
 
     def tokenize_expression(self):
         """Return a list of the expression's single tokens in order."""
@@ -90,7 +90,8 @@ class Expression:
                         # the length of the found operator is less than
                         # or equal to the length of the longest possible
                         # operator
-                        if len(related_elements) <= self.longest_operator_length:
+                        if len(related_elements) <= \
+                                self.longest_operator_length:
                             actual_operator = "".join(related_elements)
                             if actual_operator in self.operator_list:
                                 operator_object = self.create_operator(
@@ -127,7 +128,8 @@ class Expression:
                         pointer += 1
                     elif self.mathematical_expression[pointer].isalpha():
                         raise ValueError(
-                            "A number has to be followed by either an operator or a bracket.")
+                            "A number has to be followed by either an \
+                            operator or a bracket.")
                     else:
                         break
 
@@ -165,7 +167,7 @@ class Expression:
         Return None if the operator symbol is unknown.
         """
         if operator_symbol == "^":
-            operator_object = Operator.Operator.erator(
+            operator_object = Operator.Operator(
                 "^", lambda x, y: x ** y)
         elif operator_symbol == "*":
             operator_object = Operator.Operator("*", lambda x, y: x * y)
@@ -178,102 +180,106 @@ class Expression:
         elif operator_symbol == "-":
             operator_object = Operator.Operator("-", lambda x, y: x - y)
         elif operator_symbol == "sin":
-            operator_object = Operator.Operator("sin", lambda x: math.sin(x))
+            operator_object = Operator.Operator("sin", lambda x: sin(x))
         elif operator_symbol == "cos":
-            operator_object = Operator.Operator("cos", lambda x: math.cos(x))
+            operator_object = Operator.Operator("cos", lambda x: cos(x))
         elif operator_symbol == "exp":
-            operator_object = Operator.Operator("exp", lambda x: math.exp(x))
+            operator_object = Operator.Operator("exp", lambda x: exp(x))
         else:
             operator_object = None
         return operator_object
 
     def create_tree(self, token_list):
         """Create an expression tree out of a given token list."""
-        number_open_brackets = 0
-        highest_priority_index = None
-        highest_priority_value = None
+        # check if the token list contains an operator
+        operator_is_present = False
+        for token in token_list:
+            if isinstance(token, Operator.Operator):
+                operator_is_present = True
+                break
         # evaluate the encapsulated list token by token and search for
-        # the operator with the least priority which is not nested
-        if len(token_list) > 1:
+        # the operator with the highest priority which is not nested
+        if operator_is_present:
+            operator_info = []
+            # collect neccessary infos to all operators in the token list
+            open_brackets = 0
             pointer = 0
             while pointer < len(token_list):
                 token = token_list[pointer]
                 if token == "(":
-                    number_open_brackets += 1
-                if token == ")":
-                    number_open_brackets -= 1
-                if number_open_brackets == 0:
-                    if isinstance(token, Operator.Operator):
-                        if highest_priority_index is None:
-                            # always consider the first operator in the list as
-                            # a possible operator with highest priority
-                            highest_priority_value = self.operator_priority[str(
-                                token)]
-                            highest_priority_index = pointer
-                        if highest_priority_value < self.operator_priority[str(token)]:
-                            highest_priority_value = self.operator_priority[str(
-                                token)]
-                            highest_priority_index = pointer
+                    open_brackets += 1
+                elif token == ")":
+                    open_brackets -= 1
+                elif isinstance(token, Operator.Operator):
+                    info = (
+                        # the operator's index in the token list
+                        pointer,
+                        # the operator's depth in the tree
+                        open_brackets,
+                        # the operator's priority
+                        self.operator_priority[str(token)]
+                    )
+                    operator_info.append(info)
                 pointer += 1
-            least_priority_operator = token_list[highest_priority_index]
-            node = Node.Node(
-                least_priority_operator,
-                self.create_tree(token_list[:highest_priority_index]),
-                self.create_tree(token_list[highest_priority_index + 1:])
-            )
-        elif len(token_list) == 1:
-            if isinstance(token_list[0], Value.Value):
-                return token_list[0]
-        return node
-        #
-        # if isinstance(token, self.Operator) or token == "(":
-        #     operator_list.append(token)
-        # elif isinstance(token, self.Constant) or isinstance(token, self.Variable):
-        #     value_list.append(token)
-        # elif token == ")":
-        #     if len(operator_list) <= 0:
-        #         raise ValueError(
-        #             "Expression contains mismatched brackets.")
-        #     if operator_list[-1] == "(":
-        #         if len(value_list) <= 1:
-        #             operator_list.pop()
-        #         else:
-        #             raise ValueError(
-        #                 "Expression contains mismatched brackets.")
-        #     if len(operator_list) <= 0:
-        #         if len(value_list) == 1:
-        #             root_node.set_left_child(value_list.pop())
-        #         else:
-        #             raise ValueError(
-        #                 "Expression contains mismatched brackets.")
-        #     actual_operator = operator_list.pop()
-        #     sub_node = None
-        #     while actual_operator != "(":
-        #         if actual_operator.is_monovalent():
-        #             if len(value_list) <= 0:
-        #                 raise ValueError(
-        #                     "A monovalent operator misses its argument.")
-        #             actual_value = value_list.pop()
-        #             sub_node = Node(actual_operator, actual_value)
-        #         else:
-        #             if len(value_list) <= 0:
-        #                 raise ValueError(
-        #                     "A bivalent operator misses its arguments.")
-        #             right_value = value_list.pop()
-        #             # peek at the operator to the left
-        #             if len(operator_list) <= 0:
-        #                 raise ValueError(
-        #                     "A bivalent operator misses its arguments.")
-        #             left_operator = operator_list[-1]
-        #             if self.operator_priority[left_operator] <= actual_operator:
-        #                 if len(value_list) <= 0:
-        #                     raise ValueError(
-        #                         "A bivalent operator misses its arguments.")
-        #                 left_value = value_list.pop()
-        #                 sub_node = self.Node(
-        #                     actual_operator, left_value, right_value)
-        #             else:
-        #                 sub_node = self.Node(actual_operator, left_value=None, right_value)
-        #
-        # else:
-        #     raise ValueError("Token list contains unknown tokens.")
+            # filter the operator info list by the lowest operator depth
+            minimum_depth = maxsize  # highest possible value of type integer
+            for info in operator_info:
+                if info[1] < minimum_depth:
+                    minimum_depth = info[1]
+            # filter the operator info list by the lowest priority
+            lowest_priority_info = (None, maxsize, maxsize)
+            pointer = 0
+            while pointer < len(operator_info):
+                info = operator_info[pointer]
+                if info[1] == minimum_depth \
+                        and info[2] < lowest_priority_info[2]:
+                    lowest_priority_info = info
+                pointer += 1
+            lowest_priority_operator = token_list[lowest_priority_info[0]]
+            if lowest_priority_operator.is_monovalent:
+                pointer = lowest_priority_info[0] + 1
+                if token_list[pointer] == "(":
+                    pointer += 1
+                    open_brackets = 1
+                    while pointer < len(token_list):
+                        if open_brackets == 0:
+                            break
+                        token = token_list[pointer]
+                        if token == "(":
+                            open_brackets += 1
+                        if token == ")":
+                            open_brackets -= 1
+                        pointer += 1
+                    self.create_tree(token_list[:lowest_priority_info[0]])
+                    node = Node.Node(
+                        lowest_priority_operator,
+                        self.create_tree(
+                            token_list[lowest_priority_info[0] + 1: pointer]
+                        )
+                    )
+                    self.create_tree(token_list[pointer:])
+                else:
+                    self.create_tree(token_list[:lowest_priority_info[0]])
+                    node = Node.Node(
+                        lowest_priority_operator,
+                        self.create_tree(
+                            token_list[pointer]
+                        )
+                    )
+                    self.create_tree(token_list[pointer + 1:])
+            else:
+                node = Node.Node(
+                    lowest_priority_operator,
+                    self.create_tree(token_list[:lowest_priority_info[0]]),
+                    self.create_tree(token_list[lowest_priority_info[0] + 1:])
+                )
+            return node
+        elif len(token_list) >= 1:
+            new_token_list = []
+            for token in token_list:
+                if token != "(" and token != ")":
+                    new_token_list.append(token)
+            if len(new_token_list) == 1:
+                return new_token_list[0]
+            else:
+                raise ValueError("Invalid input.")

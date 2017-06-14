@@ -22,35 +22,80 @@ class Node:
             return "(" + str(self.left_child) + str(self.operator) \
                 + str(self.right_child) + ")"
 
-    def evaluate(self):
+    def evaluate(self, variables=None):
         if self.operator.is_monovalent:
             # operator is monovalent, therefore just check if the
-            # corresponding data is a single value or a nested expression
-            if isinstance(self.left_child, Value.Value):
-                return self.operator.function(self.left_child.value)
-            else:
-                return self.operator.function(self.left_child.evaluate())
-        else:
-            # operator is bivalent, therefore check which of
-            # the two inputs is a single value and which one is a
+            # corresponding data is a constant, a variable or a
             # nested expression
-            if isinstance(self.left_child, Value.Value):
-                # left child is a single value
-                if isinstance(self.right_child, Value.Value):
-                    return self.operator.function(
-                        self.left_child.value, self.right_child.value
-                    )
-                else:
-                    return self.operator.function(
-                        self.left_child.value, self.right_child.evaluate()
-                    )
+            if isinstance(self.left_child, Value.Constant):
+                # left child is a constant
+                return self.operator.function(self.left_child.value)
+            elif isinstance(self.left_child, Value.Variable):
+                # left child is a variable
+                return self.operator.function(variables[str(self.left_child)])
             else:
                 # left child is a nested expression
-                if isinstance(self.right_child, Value.Value):
+                return self.operator.function(
+                    self.left_child.evaluate(variables)
+                )
+        else:
+            # operator is bivalent, therefore check which of
+            # the two inputs are constants, variables or
+            # nested expressions
+            if isinstance(self.left_child, Value.Constant):
+                if isinstance(self.right_child, Value.Constant):
+                    # left and right children are constants
                     return self.operator.function(
-                        self.left_child.evaluate(), self.right_child.value
+                        self.left_child.value,
+                        self.right_child.value
+                    )
+                elif isinstance(self.right_child, Value.Variable):
+                    # left child is a constant, right child a variable
+                    return self.operator.function(
+                        self.left_child.value,
+                        variables[str(self.right_child)]
                     )
                 else:
+                    # left child is a constant, right child a nested expression
                     return self.operator.function(
-                        self.left_child.evaluate(), self.right_child.evaluate()
+                        self.left_child.value,
+                        self.right_child.evaluate(variables)
+                    )
+            elif isinstance(self.left_child, Value.Variable):
+                if isinstance(self.right_child, Value.Constant):
+                    # left child is a variable, right child a constant
+                    return self.operator.function(
+                        variables[str(self.left_child)],
+                        self.right_child.value
+                    )
+                elif isinstance(self.right_child, Value.Variable):
+                    # left and right children are variables
+                    return self.operator.function(
+                        variables[str(self.left_child)],
+                        variables[str(self.right_child)]
+                    )
+                else:
+                    # left child is a variable, right child a nested expression
+                    return self.operator.function(
+                        variables[str(self.left_child)],
+                        self.right_child.evaluate(variables)
+                    )
+            else:
+                if isinstance(self.right_child, Value.Constant):
+                    # left child is a nested expression, right child a constant
+                    return self.operator.function(
+                        self.left_child.evaluate(variables),
+                        self.right_child.value
+                    )
+                elif isinstance(self.right_child, Value.Variable):
+                    # left child is a nested expression, right child a variable
+                    return self.operator.function(
+                        self.left_child.evaluate(variables),
+                        variables[str(self.right_child)]
+                    )
+                else:
+                    # left and right children are nested expressions
+                    return self.operator.function(
+                        self.left_child.evaluate(variables),
+                        self.right_child.evaluate(variables)
                     )

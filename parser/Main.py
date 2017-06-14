@@ -1,20 +1,14 @@
 """Module to test the parser."""
-import MathTree as mt
+import Expression
 
 if __name__ == "__main__":
-    # plus = mt.Operator("+", lambda x, y: x + y)
-    # minus = mt.Operator("-", lambda x, y: x - y)
-    # mult = mt.Operator("*", lambda x, y: x * y)
-    # sin = mt.Operator("sin", lambda x: math.sin(x))
-    #
-    # nodePlus = mt.Node(plus, mt.Constant(3), mt.Constant(4))
-    # nodeMinus = mt.Node(minus, mt.Constant(4), mt.Constant(1))
-    #
-    # nodeMult = mt.Node(mult, mt.Constant(2), nodePlus)
-    #
-    # print(nodeMult)
-    # print(nodeMult.evaluate())
+    expression_1 = Expression.Expression("(2 + x) * 5 - y ^ z")
+    variables = {"x": 5, "y": 3, "z": 2}
 
-    e = mt.Expression("3+4*2")
-    print(e)
-    print(e.evaluate())
+    print(expression_1)
+    print(expression_1.evaluate(variables))
+
+    expression_2 = Expression.Expression(str(expression_1))
+
+    print(expression_2)
+    print(expression_2.evaluate(variables))
