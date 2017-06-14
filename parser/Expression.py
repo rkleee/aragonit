@@ -250,23 +250,19 @@ class Expression:
                         if token == ")":
                             open_brackets -= 1
                         pointer += 1
-                    self.create_tree(token_list[:lowest_priority_info[0]])
                     node = Node.Node(
                         lowest_priority_operator,
                         self.create_tree(
                             token_list[lowest_priority_info[0] + 1: pointer]
                         )
                     )
-                    self.create_tree(token_list[pointer:])
                 else:
-                    self.create_tree(token_list[:lowest_priority_info[0]])
                     node = Node.Node(
                         lowest_priority_operator,
                         self.create_tree(
                             token_list[pointer]
                         )
                     )
-                    self.create_tree(token_list[pointer + 1:])
             else:
                 node = Node.Node(
                     lowest_priority_operator,

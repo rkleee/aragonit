@@ -2,7 +2,7 @@
 import Expression
 
 if __name__ == "__main__":
-    expression_1 = Expression.Expression("(2 + x) * 5 - y ^ z")
+    expression_1 = Expression.Expression("(2 + sin(x)) * 5 - y ^ z")
     variables = {"x": 5, "y": 3, "z": 2}
 
     print(expression_1)
