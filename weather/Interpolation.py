@@ -67,14 +67,12 @@ def plotLagrangePolynomial(x_axis, temperature, rainfall, control_points=5):
         # interpolates the temperature data
         y_temperature = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_temperature)
-        # if y_temperature > -20 and y_temperature < 50:
         x_values_temperature.append(x)
         y_values_temperature.append(y_temperature)
 
         # interpolates the rainfall data
         y_rainfall = calcInterpolationPolynomial(
             x, x_chosen_points, y_chosen_points_rainfall)
-        # if y_rainfall > -20 and y_rainfall < 60:
         x_values_rainfall.append(x)
         y_values_rainfall.append(y_rainfall)
 
