@@ -24,7 +24,7 @@ pendel_vel=[[3],[-3]]
 l=sqrt(start_x**2+start_y**2)
 factor=-9.81/l
 #define grid for euler integration
-t=np.arange(0,10000,0.01)
+t=np.arange(0,10000,0.03)
 dist=t[1]-t[0]
 c=1
 
@@ -35,15 +35,14 @@ y_vel=pendel_vel[1]
 
 #basic version of euler iteration 
 # a'(i+1)=a'(i)+h*a''(i)   mit a''(i)=-g/l*sin(a(i))
-#  a(i+1)=a(i)+h*a'(i)
-print(len(t))                     
+#  a(i+1)=a(i)+h*a'(i)                    
 for i in range(len(t)):
         x_vel.append(c*(x_vel[i-1]+dist*factor*sin(x_pos[i-1])))
         y_vel.append(c*(y_vel[i-1]+dist*factor*sin(y_pos[i-1])))
         x_pos.append(x_pos[i-1]+dist*x_vel[i-1])
         y_pos.append(y_pos[i-1]+dist*y_vel[i-1])
         #Dämpfungs-Faktor sinkt sehr langsam (proportional zu -sqrt(i)/c)
-        c=(1-sqrt(i)/8000)   
+        c=(1-4*sqrt(i)/8000)   
 
 #reconstruct positons from alpha
 pendel_pos=[l*sin(x_pos),-l*cos(y_pos)]
@@ -62,5 +61,5 @@ def step(i):
         pos.set_data(pendel_pos[0][i],pendel_pos[1][i])
         return curve,pos
 #create animation
-ani=animation.FuncAnimation (fig,step,np.arange(1, len(t)),interval=50,blit=True,init_func =init)
+ani=animation.FuncAnimation (fig,step,np.arange(1, len(t)),interval=40,blit=True,init_func =init)
 plt.show ()
