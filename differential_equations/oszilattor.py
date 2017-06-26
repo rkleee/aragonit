@@ -4,6 +4,13 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import random as random
 
+#define random start values for position and velocity
+pendel_pos=[[random.uniform(-1,1)],[random.uniform(-1,1)]]
+pendel_vel=[[random.uniform(-1,1)],[random.uniform(-1,1)]]
+
+#define grid for euler integration
+dist=0.008
+
 fig,ax=plt.subplots()
 fig.canvas.set_window_title("Harmonic Oszillator")
 ax.set_xlim([-2,2])
@@ -13,14 +20,6 @@ pos,=ax.plot([],[],"o",color="black")
 curve,=ax.plot([],[],"-",color="blue")
 v,=ax.plot([],[],"-",color="green")
 
-#define random start values for position and velocity
-pendel_pos=[[random.uniform(-1,1)],[random.uniform(-1,1)]]
-pendel_vel=[[random.uniform(-1,1)],[random.uniform(-1,1)]]
-
-#define grid for euler integration
-t=np.arange(0,100,0.005)
-dist=t[1]-t[0]
-
 x_pos=pendel_pos[0]
 y_pos=pendel_pos[1]
 x_vel=pendel_vel[0]
@@ -28,22 +27,36 @@ y_vel=pendel_vel[1]
 v_x=np.array([])
 v_y=np.array([])
 
-#basic version of euler iteration 
-# x'(i+1)=x'(i)+h*x''(i)   mit x''(i)=-c*x(i) für c=D/m
-#  x(i+1)=x(i)+h*x(i)                     
-for i in range(len(t)):
-       #calculate new velocity
-       x_vel=np.append(x_vel,x_vel[i-1]+dist*(-3*x_pos[i-1]))
-       y_vel=np.append(y_vel,y_vel[i-1]+dist*(-3*y_pos[i-1]))
-       #calculate velocity vector for drawing
-       v_x=np.append(v_x,[x_pos[i-1],x_pos[i-1]+x_vel[i-1]])
-       v_y=np.append(v_y,[y_pos[i-1],y_pos[i-1]+y_vel[i-1]])
-       #calculate new postion
-       x_pos=np.append(x_pos,x_pos[i-1]+dist*x_vel[i-1])
-       y_pos=np.append(y_pos,y_pos[i-1]+dist*y_vel[i-1])
 
-pendel_pos=[x_pos,y_pos]
-pendel_vel=[x_vel,y_vel]
+# x'(i+1)=x'(i)+h*x''(i)   mit x''(i)=-c*x(i) für c=D/m
+#  x(i+1)=x(i)+h*x(i)
+#calculate the i-th step of euler iteration
+def iteration_step(i):
+       global x_vel,y_vel,x_pos,y_pos
+       #calculate new velocity
+       x_vel_new=x_vel[i-1]+dist*(-3*x_pos[i-1])
+       y_vel_new=y_vel[i-1]+dist*(-3*y_pos[i-1])
+       #calculate velocity vector for drawing
+       v_x_new=[x_pos[i-1],x_pos[i-1]+x_vel[i-1]]
+       v_y_new=[y_pos[i-1],y_pos[i-1]+y_vel[i-1]]
+       #calculate new postion
+       x_pos_new=x_pos[i-1]+dist*x_vel[i-1]
+       y_pos_new=y_pos[i-1]+dist*y_vel[i-1]
+       return [x_vel_new,y_vel_new,v_x_new,v_y_new,x_pos_new,y_pos_new]
+
+#calls euler-iteration and sets values           
+def iterate(i):
+       global x_vel,y_vel,x_pos,y_pos,v_x,v_y
+       global pendel_pos,pendel_vel
+       values=iteration_step(i)
+       x_vel=np.append(x_vel,values[0])
+       y_vel=np.append(y_vel,values[1])
+       v_x=np.append(v_x,values[2])
+       v_y=np.append(v_y,values[3])
+       x_pos=np.append(x_pos,values[4])
+       y_pos=np.append(y_pos,values[5])    
+       pendel_pos=[x_pos,y_pos]
+       pendel_vel=[x_vel,y_vel]
 
 def init ():
         v.set_data([],[])
@@ -53,14 +66,16 @@ def init ():
 
 # step of animation
 def step(i):
+        global pendel_pos,pendel_vel,v_x,v_y
+        #set all previous points
+        curve.set_data(pendel_pos[0][0:i-1],pendel_pos[1][0:i-1])
+        #set actual positon
+        pos.set_data(pendel_pos[0][i-1],pendel_pos[1][i-1])
+        iterate(i)
         #draw corresponding velocity vector
         v.set_data(v_x[2*(i-1):2*i],v_y[2*(i-1):2*i])
-        #set all previous points
-        curve.set_data(pendel_pos[0][0:i],pendel_pos[1][0:i])
-        #set actual positon
-        pos.set_data(pendel_pos[0][i],pendel_pos[1][i])
         return v,curve,pos
 
 #create animation
-ani=animation.FuncAnimation (fig,step,np.arange(1, len(t)),interval=5,blit=True,init_func =init)
+ani=animation.FuncAnimation (fig,step,np.arange(1,100000),interval=10,blit=True,init_func =init)
 plt.show ()
