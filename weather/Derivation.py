@@ -1,48 +1,111 @@
 """Module providing functions to compute the derivative of data."""
-import matplotlib.pyplot as plt
+from math import cos, sin
+
 import numpy as np
+from matplotlib import pyplot as plt
 
-import PlotGraph
+
+def computeExtremePoints(x_values, y_values, deriv_y_values, interval_width):
+    """Return the data's global extreme points."""
+    max_x_values = []
+    max_y_values = []
+    min_x_values = []
+    min_y_values = []
+    for i in range(len(deriv_y_values) - 1):
+        if deriv_y_values[i] < 0 and deriv_y_values[i + 1] > 0:
+            x = x_values[i * interval_width]
+            y = y_values[i * interval_width]
+            min_x_values.append(x)
+            min_y_values.append(y)
+        elif deriv_y_values[i] > 0 and deriv_y_values[i + 1] < 0:
+            x = x_values[i * interval_width]
+            y = y_values[i * interval_width]
+            max_x_values.append(x)
+            max_y_values.append(y)
+    return max_x_values, max_y_values, min_x_values, min_y_values
 
 
-def calcDerivation(data, interval_width=1, normal=True):
-    x_values = []
-    y_values = []
-
-    number_of_intervals = len(data) // interval_width
+def approximateDerivation(x_values, y_values, interval_width=10, normal=True):
+    """Approximate the derivation of the given function."""
+    derivation_x_values = []
+    derivation_y_values = []
     if normal:
         # use normal derivation function
-        for i in range(number_of_intervals - 1):
-            x = i * interval_width
-            y = (data[x + interval_width] - data[x]) / interval_width
-            x_values.append(x)
-            y_values.append(y)
+        index = 0
+        while (index + interval_width) < (len(x_values) - 1):
+            y = (y_values[index + interval_width] -
+                 y_values[index]) / interval_width
+            derivation_x_values.append(x_values[index])
+            derivation_y_values.append(y)
+            index += interval_width
     else:
         # use alternative derivation function
-        for i in range(number_of_intervals - 1):
-            value = (data[(i * interval_width) + interval_width] -
-                     data[(i * interval_width) - interval_width]) / (2 * interval_width)
-            derivation.append(value)
+        index = interval_width
+        while (index + interval_width) < (len(x_values) - 1):
+            y = (y_values[index + interval_width] -
+                 y_values[index - interval_width]) / (2 * interval_width)
+            derivation_x_values.append(x_values[index])
+            derivation_y_values.append(y)
+            index += interval_width
+    return derivation_x_values, derivation_y_values
+
+
+def computeFunctionValues(function, start=-5, end=5, steps=10):
+    """Evaluate the given function on the specified interval."""
+    x_values = np.linspace(start, end, steps)
+    y_values = []
+    for x in x_values:
+        y_values.append(function(x))
     return x_values, y_values
 
 
-def plotDerivation(x_axis, temperature, rainfall, interval_width=1, normal_derivation=True):
-    """Plot approximated derivation of given data."""
-    temperature_axis, rainfall_axis = PlotGraph.initGraph(
-        x_axis, temperature, rainfall, "Derivation")
+def plotApproximatedDerivation(x_values, y_values, interval_width=10, normal=True):
+    """Plot approximation derivation and its corresponding extreme points."""
+    # plot given data
+    plotData(x_values, y_values)
+    # approximate derivation function
+    deriv_x_values, deriv_y_values = approximateDerivation(
+        x_values, y_values, interval_width, normal)
+    # plot derivation function
+    plt.plot(deriv_x_values, deriv_y_values, 'y')
+    # compute all extreme points
+    max_x_values, max_y_values, min_x_values, min_y_values = computeExtremePoints(
+        x_values, y_values, deriv_y_values, interval_width)
+    # add extreme points to the plot
+    if len(max_x_values) > 0:
+        plt.plot(max_x_values, max_y_values, 'co')
+    if len(min_x_values) > 0:
+        plt.plot(min_x_values, min_y_values, 'mo')
 
-    if normal_derivation:
-        temperature_x_values, temperature_y_values = calcDerivation(
-            temperature, interval_width, True)
-        rainfall_x_values, rainfall_y_values = calcDerivation(
-            rainfall, interval_width, True)
-    else:
-        temperature_x_values, temperature_y_values = calcDerivation(
-            temperature, interval_width, False)
-        rainfall_x_values, rainfall_y_values = calcDerivation(
-            rainfall, interval_width, False)
 
-    temperature_axis.plot(
-        temperature_x_values, temperature_y_values, linewidth=2, color="yellow")
-    rainfall_axis.plot(
-        rainfall_x_values, rainfall_y_values, linewidth=2, color="green")
+def plotData(x_values, y_values):
+    plt.plot(x_values, y_values, 'r')
+
+
+def function(x): return sin(x)
+
+
+def derivation(x): return cos(x)
+
+
+if __name__ == "__main__":
+    start = -6
+    end = 6
+    steps = 500
+
+    # get function data
+    func_x_values, func_y_values = computeFunctionValues(
+        function, start, end, steps)
+
+    # plot function data and its approximated derivation
+    interval_width = 5
+    plotApproximatedDerivation(
+        func_x_values, func_y_values, interval_width, True)
+
+    # plot correct derivation
+    deriv_x_values, deriv_y_values = computeFunctionValues(
+        derivation, start, end, steps)
+    plt.plot(deriv_x_values, deriv_y_values, 'r--')
+
+    plt.grid(True)
+    plt.show()
