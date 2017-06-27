@@ -26,13 +26,14 @@ def plotGraphs(temperature, rainfall, start, end):
     # Regression.plotPolynomial(x_axis, temperature, rainfall, 3)
     # Regression.plotMovingLeastSquares(x_axis, temperature, rainfall)
 
-    Derivation.plotDerivation(x_axis, temperature, rainfall, 100)
+    Derivation.plotDerivation(x_axis, temperature, rainfall, 20)
+    plt.grid(True)
     plt.show()
 
 
 if __name__ == "__main__":
-    start = 0
-    end = 500
+    start = 210
+    end = 425
     # TODO: make sure that start as well as end values are valid
     (temperature, rainfall) = ReadData.getData(start, end)
     plotGraphs(temperature, rainfall, start, end)
