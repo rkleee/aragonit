@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def computeExtremePoint(function, derivation_x_values, derivation_y_values):
+def computeExtremePoint(x_values, y_values, derivation_y_values, interval_width):
     """Return the data's global extreme points."""
     global_max_x_value = None
     global_max_y_value = -maxsize
@@ -12,14 +12,16 @@ def computeExtremePoint(function, derivation_x_values, derivation_y_values):
     global_min_y_value = maxsize
     for i in range(len(derivation_y_values) - 1):
         if derivation_y_values[i] < 0 and derivation_y_values[i + 1] > 0:
-            if global_min_y_value > function(derivation_x_values[i]):
-                global_min_x_value = derivation_x_values[i]
-                global_min_y_value = function(derivation_x_values[i])
+            y = y_values[i * interval_width]
+            if global_min_y_value > y:
+                global_min_x_value = x_values[i * interval_width]
+                global_min_y_value = y
         elif derivation_y_values[i] > 0 and derivation_y_values[i + 1] < 0:
-            if global_max_y_value < function(derivation_x_values[i]):
-                global_max_x_value = derivation_x_values[i]
-                global_max_y_value = function(derivation_x_values[i])
-    return global_max_x_value, global_min_x_value
+            y = y_values[i * interval_width]
+            if global_max_y_value < y:
+                global_max_x_value = x_values[i * interval_width]
+                global_max_y_value = y
+    return global_max_x_value, global_max_y_value, global_min_x_value, global_min_y_value
 
 
 def approximateDerivation(x_values, y_values, interval_width=10, normal=True):
@@ -66,11 +68,11 @@ def plotFunction(function, start=-5, end=-5, steps=10, dotted=False):
 
 
 if __name__ == "__main__":
-    function = np.poly1d([1, 0, -5])  # x^2 - 5
-    correct_derivation = np.poly1d([2, 0])  # 2*x
+    function = np.poly1d([1, 0, -1, 1, -1, 0])  # x^5 - x^3 + x^2 -x
+    correct_derivation = np.poly1d([5, 0, -3, 2, -1])  # 5*x^4 - 3*x^2 + 2*x -1
 
-    start = -10
-    end = 10
+    start = -2
+    end = 2
     steps = 100
 
     plotFunction(function, start, end, steps)
@@ -78,21 +80,23 @@ if __name__ == "__main__":
 
     x_values, y_values = computeFunctionValues(function, start, end, steps)
 
+    interval_width = 2
+
     derivation_x_values, derivation_y_values = approximateDerivation(
-        x_values, y_values, 10, True)
-    plt.plot(derivation_x_values, derivation_y_values)
+        x_values, y_values, interval_width, True)
+    plt.plot(derivation_x_values, derivation_y_values, '.')
 
     # derivation_x_values, derivation_y_values = approximateDerivation(
     #     x_values, y_values, 20, True)
     # plt.plot(derivation_x_values, derivation_y_values)
 
-    global_max_x_value, global_min_x_value = computeExtremePoint(
-        function, derivation_x_values, derivation_y_values)
+    global_max_x_value, global_max_y_value, global_min_x_value, global_min_y_value = computeExtremePoint(
+        x_values, y_values, derivation_y_values, interval_width)
 
     if global_max_x_value is not None:
-        plt.plot(global_max_x_value, function(global_max_x_value), 'go')
+        plt.plot(global_max_x_value, global_max_y_value, 'go')
     elif global_min_x_value is not None:
-        plt.plot(global_min_x_value, function(global_min_x_value), 'yo')
+        plt.plot(global_min_x_value, global_min_y_value, 'yo')
 
     plt.grid(True)
     plt.show()
