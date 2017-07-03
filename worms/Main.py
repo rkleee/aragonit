@@ -8,8 +8,10 @@ import Layers
 
 if __name__ == "__main__":
     app = widget.QApplication(sys.argv)
+    width = 500
+    height = 500
+    world_layer = Layers.MapLayer(width, height)
     display = widget.QLabel()
-    world = Layers.MapLayer(300, 600, gui.QImage.Format_RGB32)
-    display.setPixmap(gui.QPixmap.fromImage(world))
+    display.setPixmap(gui.QPixmap.fromImage(world_layer))
     display.show()
     sys.exit(app.exec_())
