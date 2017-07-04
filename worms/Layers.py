@@ -10,6 +10,12 @@ import PyQt5.QtGui as gui
 class LandscapeLayer(gui.QImage):
     """Layer containing the land mass of the map."""
 
+    def _createPainter(self):
+        self.painter = gui.QPainter(self)
+        self.painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
+        self.painter.setPen(core.Qt.black)
+        self.painter.setBrush(core.Qt.black)
+
     def _computeLandscapeParameters(self):
         """Set constant factors for landscape creation function."""
         self.landscape_compression_factor = uniform(-1.0, 1.0)
@@ -51,9 +57,15 @@ class LandscapeLayer(gui.QImage):
         self._computeLandscapeParameters()
         self._createLandscape()
         super().__init__(self.color_data, width, height, color_format)
-        # painter = gui.QPainter(self)
-        # painter.setPen(gui.QPen(core.Qt.blue, 2))
-        # painter.drawLine(50, 50, 50, 100)
+        # initialize the painter to change the landscape
+        self._createPainter()
+        self.drawCrater(500, 500, 150)
+        self.painter.end()
+
+    def drawCrater(self, x_value, y_value, diameter):
+        """Draw a crater on the given position with the given size."""
+        self.painter.drawEllipse(core.QPoint(
+            x_value, y_value), diameter, diameter)
 
 
 class BackgroundLayer(gui.QImage):
