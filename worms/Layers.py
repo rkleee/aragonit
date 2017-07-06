@@ -12,11 +12,15 @@ import Settings
 class LandscapeLayer(gui.QImage):
     """Layer containing the landscape of the map."""
 
-    def _computeLandscapeParameters(self):
-        """Set constant factors for the landscape creation function."""
+    def __init__(self, width, height):
+        """Initialize the landscape."""
+        # set constant factors for the landscape creation function
         self.landscape_compression_factor = uniform(-1.0, 1.0)
         self.landscape_offset = uniform(0.0, 2.0 * pi)
         self.landscape_parameters = np.linspace(0.001, 0.05, 200)
+        # create and draw the landscape accordingly
+        color_data = self._createLandscapeData(width, height)
+        super().__init__(color_data, width, height, Settings.color_format)
 
     def _getLandscapeHeight(self, x_coordinate):
         """
@@ -46,19 +50,14 @@ class LandscapeLayer(gui.QImage):
                     landscape_color_data[y, x, :] = land_color
         return landscape_color_data
 
-    def __init__(self, width, height):
-        """Initialize the landscape."""
-        self._computeLandscapeParameters()
-        color_data = self._createLandscapeData(width, height)
-        super().__init__(color_data, width, height, Settings.color_format)
-
     def drawCrater(self, x_value, y_value, diameter):
         """Draw a crater on the given position with the given diameter."""
         painter = gui.QPainter(self)
         painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
-        painter.setBrush(core.Qt.black)
+        painter.setBrush(gui.QColor(0, 0, 0, 0))
         painter.drawEllipse(core.QPoint(
             x_value, y_value), diameter, diameter)
+        painter.end()
 
 
 class BackgroundLayer(gui.QImage):
@@ -72,7 +71,7 @@ class BackgroundLayer(gui.QImage):
 
 
 class ObjectLayer(gui.QImage):
-    """Layer containing a single object."""
+    """Layer containing the objects of the game."""
 
     def __init__(self, width, height):
         """Initialize the layer fully transparent."""
