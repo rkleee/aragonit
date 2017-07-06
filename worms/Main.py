@@ -25,8 +25,36 @@ class GameLabel(widget.QLabel):
         self.setScaledContents(True)
         self.show()
 
+    def iteration(self, tank_id):
+        # TO DO: paint calcualted points and make start velocity non static
+
+        #start velocity
+        v_x0 = 5
+        v_y0 = 40
+        # start at tank position
+        x_base = self.tanks[tank_id][1].x_position
+        y_base = self.tanks[tank_id][1].y_position
+
+
+        x = x_base
+        y = y_base-1
+        (x_check, y_check) = self._adjustHeight(x, y)
+
+        i = 1
+
+        # calculate iteration and check if at top of landscape
+        while y <= y_check:
+            x = v_x0*i + x_base
+            y = -v_y0*i + (9.81/2)*i*i + y_base
+            (x_check, y_check) = self._adjustHeight(x,y)
+            print(int(x),int(y))
+            i = i+1
+        print("----")
+
     def keyPressEvent(self, event):
         """Move the tank and its cannon."""
+        if event.key() == core.Qt.Key_S:
+            self.iteration(self.actual_tank)
         if event.key() == core.Qt.Key_Left:
             self.moveTank(self.actual_tank, -10)
         elif event.key() == core.Qt.Key_Up:
