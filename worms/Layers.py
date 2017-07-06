@@ -6,18 +6,14 @@ import numpy as np
 import PyQt5.QtCore as core
 import PyQt5.QtGui as gui
 
+import Settings
+
 
 class LandscapeLayer(gui.QImage):
-    """Layer containing the land mass of the map."""
-
-    def _createPainter(self):
-        self.painter = gui.QPainter(self)
-        self.painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
-        self.painter.setPen(core.Qt.black)
-        self.painter.setBrush(core.Qt.black)
+    """Layer containing the landscape of the map."""
 
     def _computeLandscapeParameters(self):
-        """Set constant factors for landscape creation function."""
+        """Set constant factors for the landscape creation function."""
         self.landscape_compression_factor = uniform(-1.0, 1.0)
         self.landscape_offset = uniform(0.0, 2.0 * pi)
         self.landscape_parameters = np.linspace(0.001, 0.05, 200)
@@ -38,41 +34,47 @@ class LandscapeLayer(gui.QImage):
             y_coordinate += intermediate_result
         return y_coordinate
 
-    def _createLandscape(self):
-        """Create a random landscape."""
-        vertical_middle = len(self.color_data) / 2
-        for x in range(len(self.color_data[0])):
+    def _createLandscapeData(self, width, height):
+        """Create a matrix containing the landscape's color data."""
+        landscape_color_data = np.zeros([height, width, 4], dtype=np.uint8)
+        land_color = [139, 69, 19, 255]  # brown
+        vertical_middle = len(landscape_color_data) / 2
+        for x in range(len(landscape_color_data[0])):
             border = self._getLandscapeHeight(x) + vertical_middle
-            for y in range(len(self.color_data)):
+            for y in range(len(landscape_color_data)):
                 if y >= border:
-                    self.color_data[y, x, :] = self.land_color
+                    landscape_color_data[y, x, :] = land_color
+        return landscape_color_data
 
-    def __init__(self, width, height, color_format):
+    def __init__(self, width, height):
         """Initialize the landscape."""
-        # set the color for the land
-        self.land_color = [139, 69, 19, 255]
-        # create a 3 dimensional matrix representing the image's color data
-        self.color_data = np.zeros([height, width, 4], dtype=np.uint8)
-        # initialize the landscape
         self._computeLandscapeParameters()
-        self._createLandscape()
-        super().__init__(self.color_data, width, height, color_format)
-        # initialize the painter to change the landscape
-        self._createPainter()
-        self.drawCrater(500, 500, 150)
-        self.painter.end()
+        color_data = self._createLandscapeData(width, height)
+        super().__init__(color_data, width, height, Settings.color_format)
 
     def drawCrater(self, x_value, y_value, diameter):
-        """Draw a crater on the given position with the given size."""
-        self.painter.drawEllipse(core.QPoint(
+        """Draw a crater on the given position with the given diameter."""
+        painter = gui.QPainter(self)
+        painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
+        painter.setBrush(core.Qt.black)
+        painter.drawEllipse(core.QPoint(
             x_value, y_value), diameter, diameter)
 
 
 class BackgroundLayer(gui.QImage):
     """Layer containing the background of the map."""
 
-    def __init__(self, width, height, color_format):
+    def __init__(self, width, height):
         """Initialize the background."""
-        super().__init__(width, height, color_format)
+        super().__init__(width, height, Settings.color_format)
         # use a simple blue sky as background
         self.fill(core.Qt.blue)
+
+
+class ObjectLayer(gui.QImage):
+    """Layer containing a single object."""
+
+    def __init__(self, width, height):
+        """Initialize the layer fully transparent."""
+        super().__init__(width, height, Settings.color_format)
+        self.fill(gui.QColor(0, 0, 0, 0))
