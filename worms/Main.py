@@ -1,5 +1,6 @@
 """The game's main application."""
 import sys
+import time
 
 import random
 from math import sin,cos
@@ -34,6 +35,8 @@ class GameLabel(widget.QLabel):
         # list of other objects currently on the map
         self.objects = []
 
+        self.cannon_ellipses = []
+
         # specify which tank is on the move
         self.actual_tank_id = 0
 
@@ -46,7 +49,7 @@ class GameLabel(widget.QLabel):
         # -use correct angle for starting velocity
 
         # start velocity
-        v = random.uniform(10,100)
+        v = random.uniform(10, 100)
         angle = self.tanks[tank_id].cannon_angle
 
         # use angle to caclulate start position
@@ -62,23 +65,17 @@ class GameLabel(widget.QLabel):
 
         i = 1
 
-        painter = gui.QPainter(self.game_image)
-        painter.setBrush(core.Qt.black)
-
         # calculate iteration and check if at top of landscape
         while y <= y_check:
-            # self._updateMapImage()
-
             x = v_x0 * i + x_base
             y = -v_y0 * i + (9.81 / 2) * i * i + y_base
             (x_check, y_check) = self.adjustHeight(x, y)
-            painter.drawEllipse(x, y, 10, 10)
+            self.cannon_ellipses.append(core.QRectF(x, y, 15, 15))
             i = i + 1
-        painter.end()
-
+        self.drawCannonPath()
         # create crater at end position
-        self.landscape_layer.drawCrater(x,y,30)
-        self.drawWorld()
+        # self.landscape_layer.drawCrater(x, y, 30)
+        # self.updateMap(True)
 
     def keyPressEvent(self, event):
         """Move the tank and its cannon."""
@@ -165,14 +162,24 @@ class GameLabel(widget.QLabel):
         self.tanks[tank_id].moveCannon(change_of_angle)
         self.updateMap(False)
 
-    def updateMap(self, background_changed):
+    def drawCannonPath(self):
+        painter = gui.QPainter(self.object_image)
+        painter.setBrush(core.Qt.black)
+        for el in self.cannon_ellipses:
+            painter.drawEllipse(el)
+        painter.end()
+        self.updateMap(False,False)
+        self.cannon_ellipses = []
+
+    def updateMap(self, background_changed,objects_changed=True):
         """Draw the actual map with all objects."""
         # erase the old image
         self.game_image.fill(gui.QColor(0, 0, 0, 0))
         # paint the new image
         if background_changed:
-            self.drawWorld
-        self.drawObjects()
+            self.drawWorld()
+        if objects_changed:
+            self.drawObjects()
         self.drawGame()
         self.setPixmap(gui.QPixmap.fromImage(self.game_image))
 
@@ -198,7 +205,6 @@ class GameLabel(widget.QLabel):
         # draw all other objects
         for item in self.objects:
             painter.drawImage(item.x_position, item.y_position, item)
-        painter.end()
 
     def drawGame(self):
         """Draw the whole game image."""
