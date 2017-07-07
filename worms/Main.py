@@ -66,11 +66,11 @@ class GameLabel(widget.QLabel):
         if event.key() == core.Qt.Key_Left:
             self.moveTank(self.actual_tank_id, -10)
         elif event.key() == core.Qt.Key_Up:
-            pass
+            self.moveCannon(self.actual_tank_id, -10)
         elif event.key() == core.Qt.Key_Right:
             self.moveTank(self.actual_tank_id, 10)
         elif event.key() == core.Qt.Key_Down:
-            pass
+            self.moveCannon(self.actual_tank_id, 10)
         elif event.key() == core.Qt.Key_C:
             if self.actual_tank_id == len(self.tanks) - 1:
                 self.actual_tank_id = 0
@@ -109,22 +109,22 @@ class GameLabel(widget.QLabel):
                 y_value += 1
         return x_value, y_value
 
-    def getNewCoordinates(self, tank_id, direction):
+    def getNewCoordinates(self, tank_id, change_of_x_value):
         """Compute new coordinates of the tank."""
         if 0 <= tank_id < len(self.tanks):
-            x_value = self.tanks[tank_id].x_position + direction
+            x_value = self.tanks[tank_id].x_position + change_of_x_value
             y_value = self.tanks[tank_id].y_position
             new_x_value, new_y_value = self.adjustHeight(x_value, y_value)
             self.tanks[tank_id].x_position = new_x_value
             self.tanks[tank_id].y_position = new_y_value
 
-    def moveTank(self, tank_id, direction):
+    def moveTank(self, tank_id, change_of_x_value):
         """Move the tank into the given direction."""
         old_x_position = self.tanks[tank_id].x_position
         old_y_position = self.tanks[tank_id].y_position
-        new_x_position = old_x_position + direction
+        new_x_position = old_x_position + change_of_x_value
         if 0 <= new_x_position < self.width:
-            self.getNewCoordinates(tank_id, direction)
+            self.getNewCoordinates(tank_id, change_of_x_value)
             # erase the old tank from its layer
             painter = gui.QPainter(self.object_layer)
             painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
@@ -140,6 +140,11 @@ class GameLabel(widget.QLabel):
                 self.tanks[tank_id].x_position, self.tanks[tank_id].y_position, self.tanks[tank_id])
             painter.end()
             self.updateMap(False)
+
+    def moveCannon(self, tank_id, change_of_angle):
+        """Move the cannon and draw its new position."""
+        self.tanks[tank_id].moveCannon(change_of_angle)
+        self.updateMap(False)
 
     def updateMap(self, background_changed):
         """Draw the actual map with all objects."""

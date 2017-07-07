@@ -32,8 +32,10 @@ class Tank(BaseObject):
         self.tank_id = tank_id
         self.tank_color = tank_color
         self.cannon_color = cannon_color
+        self.cannon_width = 1
         # define the position of the cannon
-        self.cannon_start = core.QPoint((self.height // 2), (self.width // 2))
+        self.cannon_start = core.QPoint(
+            (self.height // 2) - self.cannon_width, (self.width // 2))
         self.cannon_length = self.height // 2
         self.cannon_angle = 45
         self.getCannonEnd()
@@ -57,22 +59,24 @@ class Tank(BaseObject):
 
     def moveCannon(self, change_of_angle):
         """Change the angle of the cannon according to the given parameter."""
-        # erase the old cannon
-        painter = self.createErasePainter()
-        painter.drawLine(self.cannon_start, self.cannon_end)
-        painter.end()
-        # compute the new cannon's position
-        self.cannon_angle += change_of_angle
-        self.getCannonEnd()
-        # draw the new cannon
-        painter = self.createDrawPainter(self, self.cannon_color)
-        painter.drawLine(self.cannon_start, self.cannon_end)
-        painter.end()
+        tmp_angle = self.cannon_angle + change_of_angle
+        if 0 < tmp_angle < 180:
+            # erase the old cannon
+            painter = self.createErasePainter()
+            painter.drawLine(self.cannon_start, self.cannon_end)
+            painter.end()
+            # compute the new cannon's position
+            self.cannon_angle = tmp_angle
+            self.getCannonEnd()
+            # draw the new cannon
+            painter = self.createDrawPainter(self.cannon_color)
+            painter.drawLine(self.cannon_start, self.cannon_end)
+            painter.end()
 
     def createDrawPainter(self, color):
         """Create painter to (re-)draw parts of the tank."""
         painter = gui.QPainter(self)
-        painter.setPen(gui.QPen(color, 5))
+        painter.setPen(gui.QPen(color, self.cannon_width))
         painter.setBrush(color)
         return painter
 
@@ -80,5 +84,6 @@ class Tank(BaseObject):
         """Create painter to erase parts of the tank."""
         painter = gui.QPainter(self)
         painter.setCompositionMode(gui.QPainter.CompositionMode_Clear)
+        painter.setPen(gui.QPen(gui.QColor(0, 0, 0, 0), self.cannon_width))
         painter.setBrush(gui.QColor(0, 0, 0, 0))
         return painter
