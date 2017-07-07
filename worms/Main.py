@@ -1,5 +1,6 @@
 """The game's main application."""
 import sys
+import random
 
 import PyQt5.QtCore as core
 import PyQt5.QtGui as gui
@@ -23,12 +24,12 @@ class GameImage(widget.QLabel):
 
         self._createMapImage(width, height)
 
-    def iteration(self, tank_id):
-        # TO DO: paint calcualted points and make start velocity non static
+    def iteration(self, tank_id, left):
+        # TO DO: remove old points
 
         # start velocity
-        v_x0 = 5
-        v_y0 = 40
+        v_x0 = random.uniform(10, 100)
+        v_y0 = random.uniform(20, 100)
         # start at tank position
         x_base = self.tanks[tank_id][1].x_position
         y_base = self.tanks[tank_id][1].y_position
@@ -39,14 +40,23 @@ class GameImage(widget.QLabel):
 
         i = 1
 
+        # shooting left -> x decreases
+        # otherwise x increases
+        if left:
+            v_x0 *= -1
+
         # calculate iteration and check if at top of landscape
         while y <= y_check:
+            # self._updateMapImage()
+            painter = gui.QPainter(self.image)
+            painter.setBrush(core.Qt.black)
             x = v_x0 * i + x_base
             y = -v_y0 * i + (9.81 / 2) * i * i + y_base
             (x_check, y_check) = self._adjustHeight(x, y)
-            print(int(x), int(y))
+            painter.drawEllipse(x, y, 10, 10)
+            painter.end()
+            self.setPixmap(gui.QPixmap.fromImage(self.image))
             i = i + 1
-        print("----")
 
     def keyPressEvent(self, event):
         """Move the tank and its cannon."""
@@ -64,7 +74,7 @@ class GameImage(widget.QLabel):
             else:
                 self.actual_tank -= 1
         elif event.key() == core.Qt.Key_S:
-            self.iteration(self.actual_tank)
+            self.iteration(self.actual_tank, True)
 
     def _adjustHeight(self, x_value, y_value):
         """
@@ -171,7 +181,7 @@ class GameImage(widget.QLabel):
         # create second tank on its own layer
         tank_two_layer = Layers.ObjectLayer(width, height)
         tank_two = Objects.Tank((self.width - 200), (height // 2),
-                                1, core.Qt.black, core.Qt.red)
+                                1, core.Qt.green, core.Qt.red)
         self.tanks.append((tank_two_layer, tank_two))
         self.getNewCoordinates(self.tanks[1][1].tank_id, 0)
         tmp_painter = gui.QPainter(self.tanks[1][0])

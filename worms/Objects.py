@@ -53,5 +53,5 @@ class Tank(gui.QImage):
 
     def moveCannonLeft(self):
         """Move cannon to the left and repaint the tank."""
-        painter = self._createPainter()
+        painter = self._createPainter(self)
         painter.end()
