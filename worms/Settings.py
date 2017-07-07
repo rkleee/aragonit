@@ -2,4 +2,6 @@
 
 import PyQt5.QtGui as gui
 
-color_format = gui.QImage.Format_RGBA8888
+WIDTH = 2000
+HEIGHT = 1000
+COLOR_FORMAT = gui.QImage.Format_RGBA8888
