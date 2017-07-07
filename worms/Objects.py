@@ -73,6 +73,14 @@ class Tank(BaseObject):
             painter.drawLine(self.cannon_start, self.cannon_end)
             painter.end()
 
+    def getAbsoluteCannonEnd(self):
+        """
+        Calculates the absolute positon of te cannon end
+        """
+        x = self.cannon_end.x() + self.x_position
+        y = self.cannon_end.y() + self.y_position
+        return x,y
+
     def createDrawPainter(self, color):
         """Create painter to (re-)draw parts of the tank."""
         painter = gui.QPainter(self)

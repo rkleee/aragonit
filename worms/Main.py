@@ -40,22 +40,22 @@ class GameLabel(widget.QLabel):
         self.createMapImage()
 
     def iteration(self, tank_id):
-        # TO DO: remove old points
+        # TO DO:
+        # -draw each point and after that remove all points
+        # -and draw crater
+        # -use correct angle for starting velocity
 
         # start velocity
         v = random.uniform(10,100)
         angle = self.tanks[tank_id].cannon_angle
-        print(180-angle)
 
         # use angle to caclulate start position
-        v_x0 = v*cos(180-angle)
-        print(v_x0)
-        v_y0 = v*sin(180-angle)
-        # start at tank position
+        # not working correctly
+        v_x0 = v*cos(angle)
+        v_y0 = v*sin(angle)
 
-        # change this to use absolute position of cannon end as start postion!!
-        x_base = self.tanks[tank_id].x_position
-        y_base = self.tanks[tank_id].y_position
+        # start at tank position
+        (x_base,y_base) = self.tanks[tank_id].getAbsoluteCannonEnd()
         x = x_base
         y = y_base - 1
         (x_check, y_check) = self.adjustHeight(x, y)
@@ -75,7 +75,10 @@ class GameLabel(widget.QLabel):
             painter.drawEllipse(x, y, 10, 10)
             i = i + 1
         painter.end()
-        self.setPixmap(gui.QPixmap.fromImage(self.game_image))
+
+        # create crater at end position
+        self.landscape_layer.drawCrater(x,y,30)
+        self.drawWorld()
 
     def keyPressEvent(self, event):
         """Move the tank and its cannon."""
@@ -161,7 +164,6 @@ class GameLabel(widget.QLabel):
         """Move the cannon and draw its new position."""
         self.tanks[tank_id].moveCannon(change_of_angle)
         self.updateMap(False)
-        print(self.tanks[tank_id].cannon_angle)
 
     def updateMap(self, background_changed):
         """Draw the actual map with all objects."""
