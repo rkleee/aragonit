@@ -37,7 +37,7 @@ class GameLabel(widget.QLabel):
 
         # timer for drawing path of bullet
         self.timer = core.QTimer()
-        self.timer.setInterval(80)
+        self.timer.setInterval(5)
         self.timer.timeout.connect(self.drawBulletPath)
 
         # specify which tank is on the move
@@ -46,37 +46,31 @@ class GameLabel(widget.QLabel):
         self.createMapImage()
 
     def iteration(self, tank_id):
-        # TO DO:
-        # -draw each point and after that remove all points
-        # -and draw crater
-        # -use correct angle for starting velocity
 
         # start velocity
-        v = 10
-        # v = random.uniform(10, 100)
+        v = random.uniform(50, 150)
         angle = self.tanks[tank_id].cannon_angle
 
         # use angle to calculate start position
-        # not working correctly
-        v_x0 = v * cos(radians(angle))
-        v_y0 = v * sin(radians(angle))
+        v_x0 = v * cos(radians(360 - angle))
+        v_y0 = v * sin(radians(360 - angle))
 
         # start at tank position
         (x_base, y_base) = self.tanks[tank_id].getAbsoluteCannonEnd()
         x = x_base
-        y = y_base - 1
+        y = (y_base - 1)
         (x_check, y_check) = self.adjustHeight(x, y)
-
+        self.cannon_ellipses.append(core.QRectF(x, y, 15, 15))
         i = 1
 
         # calculate iteration and check if at top of landscape
-        while y <= y_check:
-            x = (v_x0 * i)*10 + x_base
-            y = (-v_y0 * i + (9.81 / 2) * i * i)*10 + y_base
+        while y <= y_check and 0 < x < self.width:
+            x = (v_x0 * i) + x_base
+            y = (-v_y0 * i + (9.81 / 2) * i * i) + y_base
             (x_check, y_check) = self.adjustHeight(x, y)
             self.cannon_ellipses.append(core.QRectF(x, y, 15, 15))
-            i = i + 1
-        self.vel = sqrt(v_x0**2 + (-v_y0 + 9.81 * i)**2)
+            i += 0.25
+        self.vel = sqrt(v_x0 ** 2 + (-v_y0 + 9.81 * i) ** 2)
 
         self.drawIndex = 0
         self.crater_x = x
@@ -107,6 +101,8 @@ class GameLabel(widget.QLabel):
 
         The point should be directly on top of the landscape.
         """
+        if x_value < 0 or y_value < 0 or x_value > self.width or y_value > self.height:
+            return 0, 0
         alpha = self.landscape_layer.pixelColor(
             x_value, y_value).alpha()
         if alpha != 0:
