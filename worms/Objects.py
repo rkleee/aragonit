@@ -25,18 +25,20 @@ class Tank(BaseObject):
 
     def __init__(self, tank_id, x_position, y_position, width, height, tank_color, cannon_color):
         """Initialize the tank."""
-        super().__init__(x_position, y_position, width, height)
+        # draw the tank from its lower left corner
+        scaled_y_position = y_position - height
+        super().__init__(x_position, scaled_y_position, width, height)
         # make the image fully transparent
         self.fill(gui.QColor(0, 0, 0, 0))
         # set necessary color attributes
         self.tank_id = tank_id
         self.tank_color = tank_color
         self.cannon_color = cannon_color
-        self.cannon_width = 1
+        self.cannon_width = 5
         # define the position of the cannon
         self.cannon_start = core.QPoint(
-            (self.height // 2) - self.cannon_width, (self.width // 2))
-        self.cannon_length = self.height // 2
+            (self.width // 2), (self.height // 2) - self.cannon_width)
+        self.cannon_length = (self.height // 2) - self.cannon_width
         self.cannon_angle = 45
         self.getCannonEnd()
         # initialize a painter and paint the tank
@@ -79,7 +81,7 @@ class Tank(BaseObject):
         """
         x = self.cannon_end.x() + self.x_position
         y = self.cannon_end.y() + self.y_position
-        return x,y
+        return x, y
 
     def createDrawPainter(self, color):
         """Create painter to (re-)draw parts of the tank."""

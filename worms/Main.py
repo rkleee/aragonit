@@ -1,8 +1,7 @@
 """The game's main application."""
-import sys
-
 import random
-from math import sin, cos, sqrt
+import sys
+from math import cos, sin, sqrt
 
 import PyQt5.QtCore as core
 import PyQt5.QtGui as gui
@@ -58,8 +57,8 @@ class GameLabel(widget.QLabel):
 
         # use angle to calculate start position
         # not working correctly
-        v_x0 = v*cos(angle)
-        v_y0 = v*sin(angle)
+        v_x0 = v * cos(angle)
+        v_y0 = v * sin(angle)
 
         # start at tank position
         (x_base, y_base) = self.tanks[tank_id].getAbsoluteCannonEnd()
@@ -76,7 +75,7 @@ class GameLabel(widget.QLabel):
             (x_check, y_check) = self.adjustHeight(x, y)
             self.cannon_ellipses.append(core.QRectF(x, y, 15, 15))
             i = i + 1
-        self.vel = sqrt(v_x0**2 + (-v_y0 + 9.81*i)**2)
+        self.vel = sqrt(v_x0**2 + (-v_y0 + 9.81 * i)**2)
 
         self.drawIndex = 0
         self.crater_x = x
@@ -170,19 +169,20 @@ class GameLabel(widget.QLabel):
 
     def drawBulletPath(self):
         if self.cannon_ellipses and self.drawIndex < len(self.cannon_ellipses):
-                self.updateMap(False)
-                painter = gui.QPainter(self.object_image)
-                painter.setBrush(core.Qt.black)
-                painter.drawEllipse(self.cannon_ellipses[self.drawIndex])
-                painter.end()
-                self.updateMap(False, False)
-                self.drawIndex += 1
+            self.updateMap(False)
+            painter = gui.QPainter(self.object_image)
+            painter.setBrush(core.Qt.black)
+            painter.drawEllipse(self.cannon_ellipses[self.drawIndex])
+            painter.end()
+            self.updateMap(False, False)
+            self.drawIndex += 1
         else:
-                self.timer.stop()
-                self.cannon_ellipses = []
-                # create crater at end position
-                self.landscape_layer.drawCrater(self.crater_x, self.crater_y, 0.6*self.vel)
-                self.updateMap(True)
+            self.timer.stop()
+            self.cannon_ellipses = []
+            # create crater at end position
+            self.landscape_layer.drawCrater(
+                self.crater_x, self.crater_y, 0.6 * self.vel)
+            self.updateMap(True)
 
     def updateMap(self, background_changed, objects_changed=True):
         """Draw the actual map with all objects."""
@@ -248,7 +248,7 @@ class GameLabel(widget.QLabel):
         # create second tank
         tank_two = Objects.Tank(
             1, (self.width - 200), (self.height // 2),
-            200, 200, core.Qt.black, core.Qt.red
+            100, 100, core.Qt.black, core.Qt.red
         )
         self.tanks.append(tank_two)
         self.getNewCoordinates(self.tanks[1].tank_id, 0)
