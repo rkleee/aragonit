@@ -39,7 +39,7 @@ class Tank(BaseObject):
         self.cannon_start = core.QPoint(
             (self.width // 2), (self.height // 2) - self.cannon_width)
         self.cannon_length = (self.height // 2) - self.cannon_width
-        self.cannon_angle = 45
+        self.cannon_angle = 225
         self.getCannonEnd()
         # initialize a painter and paint the tank
         painter = self.createDrawPainter(self.tank_color)
@@ -52,8 +52,8 @@ class Tank(BaseObject):
     def getCannonEnd(self):
         """Compute the cannon's endpoint relative to the tank's image."""
         # trigonometry
-        tmp_x = cos(radians(self.cannon_angle + 180)) * self.cannon_length
-        tmp_y = sin(radians(self.cannon_angle + 180)) * self.cannon_length
+        tmp_x = cos(radians(self.cannon_angle)) * self.cannon_length
+        tmp_y = sin(radians(self.cannon_angle)) * self.cannon_length
         # compute real pixel coordinates depending on the cannon's start point
         x_value = int(tmp_x + self.cannon_start.x())
         y_value = int(tmp_y + self.cannon_start.y())
@@ -68,7 +68,7 @@ class Tank(BaseObject):
     def moveCannon(self, change_of_angle):
         """Change the angle of the cannon according to the given parameter."""
         tmp_angle = self.cannon_angle + change_of_angle
-        if 0 < tmp_angle < 180:
+        if 180 < tmp_angle < 360:
             # erase the old cannon
             painter = self.createErasePainter()
             painter.drawLine(self.cannon_start, self.cannon_end)

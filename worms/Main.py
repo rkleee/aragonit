@@ -1,7 +1,7 @@
 """The game's main application."""
 import random
 import sys
-from math import cos, sin, sqrt
+from math import cos, sin, sqrt, radians
 
 import PyQt5.QtCore as core
 import PyQt5.QtGui as gui
@@ -52,13 +52,14 @@ class GameLabel(widget.QLabel):
         # -use correct angle for starting velocity
 
         # start velocity
-        v = random.uniform(10, 100)
+        v = 10
+        # v = random.uniform(10, 100)
         angle = self.tanks[tank_id].cannon_angle
 
         # use angle to calculate start position
         # not working correctly
-        v_x0 = v * cos(angle)
-        v_y0 = v * sin(angle)
+        v_x0 = v * cos(radians(angle))
+        v_y0 = v * sin(radians(angle))
 
         # start at tank position
         (x_base, y_base) = self.tanks[tank_id].getAbsoluteCannonEnd()
@@ -70,8 +71,8 @@ class GameLabel(widget.QLabel):
 
         # calculate iteration and check if at top of landscape
         while y <= y_check:
-            x = v_x0 * i + x_base
-            y = -v_y0 * i + (9.81 / 2) * i * i + y_base
+            x = (v_x0 * i)*10 + x_base
+            y = (-v_y0 * i + (9.81 / 2) * i * i)*10 + y_base
             (x_check, y_check) = self.adjustHeight(x, y)
             self.cannon_ellipses.append(core.QRectF(x, y, 15, 15))
             i = i + 1
@@ -221,6 +222,7 @@ class GameLabel(widget.QLabel):
         # other objects
         for item in self.objects:
             painter.drawImage(item.x_position, item.y_position, item)
+        painter.end()
 
     def drawGame(self):
         """Draw the whole game image."""
@@ -244,9 +246,6 @@ class GameLabel(widget.QLabel):
                                 100, 100, core.Qt.yellow, core.Qt.cyan)
         self.tanks.append(tank_one)
         self.getNewCoordinates(self.tanks[0].tank_id, 0)
-        tmp_painter = gui.QPainter(self.object_layer)
-        tmp_painter.drawImage(self.tanks[0].x_position,
-                              self.tanks[0].y_position, self.tanks[0])
 
         # create second tank
         tank_two = Objects.Tank(
@@ -255,7 +254,10 @@ class GameLabel(widget.QLabel):
         )
         self.tanks.append(tank_two)
         self.getNewCoordinates(self.tanks[1].tank_id, 0)
+        # paint tanks
         tmp_painter = gui.QPainter(self.object_layer)
+        tmp_painter.drawImage(self.tanks[0].x_position,
+                              self.tanks[0].y_position, self.tanks[0])
         tmp_painter.drawImage(self.tanks[1].x_position,
                               self.tanks[1].y_position, self.tanks[1])
         tmp_painter.end()
