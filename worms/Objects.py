@@ -50,7 +50,7 @@ class Tank(BaseObject):
         painter.end()
 
     def getCannonEnd(self):
-        """Compute the cannon's end point."""
+        """Compute the cannon's endpoint relative to the tank's image."""
         # trigonometry
         tmp_x = cos(radians(self.cannon_angle + 180)) * self.cannon_length
         tmp_y = sin(radians(self.cannon_angle + 180)) * self.cannon_length
@@ -58,6 +58,12 @@ class Tank(BaseObject):
         x_value = int(tmp_x + self.cannon_start.x())
         y_value = int(tmp_y + self.cannon_start.y())
         self.cannon_end = core.QPoint(x_value, y_value)
+
+    def getAbsoluteCannonEnd(self):
+        """Compute the cannon's endpoint relative to the landscape."""
+        absolute_x_position = self.cannon_end.x() + self.x_position
+        absolute_y_position = self.cannon_end.y() + self.y_position
+        return absolute_x_position, absolute_y_position
 
     def moveCannon(self, change_of_angle):
         """Change the angle of the cannon according to the given parameter."""
@@ -74,14 +80,6 @@ class Tank(BaseObject):
             painter = self.createDrawPainter(self.cannon_color)
             painter.drawLine(self.cannon_start, self.cannon_end)
             painter.end()
-
-    def getAbsoluteCannonEnd(self):
-        """
-        Calculates the absolute positon of te cannon end
-        """
-        x = self.cannon_end.x() + self.x_position
-        y = self.cannon_end.y() + self.y_position
-        return x, y
 
     def createDrawPainter(self, color):
         """Create painter to (re-)draw parts of the tank."""

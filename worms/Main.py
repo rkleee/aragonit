@@ -136,8 +136,11 @@ class GameLabel(widget.QLabel):
             x_value = self.tanks[tank_id].x_position + change_of_x_value
             y_value = self.tanks[tank_id].y_position
             new_x_value, new_y_value = self.adjustHeight(x_value, y_value)
+            # scale the y coordinate so that the tank stands on top
+            # of the landscape and not slightly underneath
+            scaled_y_value = new_y_value - self.tanks[tank_id].height
             self.tanks[tank_id].x_position = new_x_value
-            self.tanks[tank_id].y_position = new_y_value
+            self.tanks[tank_id].y_position = scaled_y_value
 
     def moveTank(self, tank_id, change_of_x_value):
         """Move the tank into the given direction."""
@@ -190,13 +193,13 @@ class GameLabel(widget.QLabel):
         self.game_image.fill(gui.QColor(0, 0, 0, 0))
         # paint the new image
         if background_changed:
-            self.drawWorld()
+            self.drawMap()
         if objects_changed:
             self.drawObjects()
         self.drawGame()
         self.setPixmap(gui.QPixmap.fromImage(self.game_image))
 
-    def drawWorld(self):
+    def drawMap(self):
         """Draw background and landscape."""
         # erase the old image
         self.world_image.fill(gui.QColor(0, 0, 0, 0))
@@ -210,12 +213,12 @@ class GameLabel(widget.QLabel):
         """Draw tanks and other objects."""
         # erase all objects
         self.object_image.fill(gui.QColor(0, 0, 0, 0))
-
+        # draw new objects
         painter = gui.QPainter(self.object_image)
-        # draw all tanks
+        # tanks
         for tank in self.tanks:
             painter.drawImage(tank.x_position, tank.y_position, tank)
-        # draw all other objects
+        # other objects
         for item in self.objects:
             painter.drawImage(item.x_position, item.y_position, item)
 
@@ -258,7 +261,7 @@ class GameLabel(widget.QLabel):
         tmp_painter.end()
 
         # draw all layers
-        self.drawWorld()
+        self.drawMap()
         self.drawObjects()
         self.drawGame()
         self.setPixmap(gui.QPixmap.fromImage(self.game_image))
